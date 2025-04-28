@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { branches } from '../../mock-db';
 import SkeletonStatCard from '../../components/common/SkeletonStatCard';
 
 const BranchManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const branches = [
+    { id: 1, name: 'Downtown Branch', location: 'New York', status: 'active', established: 2010, students: 500, teachers: 30 },
+    { id: 2, name: 'Uptown Branch', location: 'Los Angeles', status: 'active', established: 2015, students: 400, teachers: 25 },
+    { id: 3, name: 'Midtown Branch', location: 'Chicago', status: 'inactive', established: 2018, students: 250, teachers: 15 },
+    { id: 4, name: 'Suburb Branch', location: 'Houston', status: 'active', established: 2020, students: 300, teachers: 20 },
+  ];
+  
+
+
+
+
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   
