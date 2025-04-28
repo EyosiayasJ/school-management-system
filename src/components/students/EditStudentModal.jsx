@@ -104,8 +104,14 @@ const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList
           animate={{ scale: 1 }}
           exit={{ scale: 0.9 }}
         >
-          <button onClick={resetForm} className="absolute top-3 right-3 text-indianred hover:text-indianred-600">
-            ✖
+          <button
+            className="absolute top-3 right-3 p-1 rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
 
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Edit Student</h2>

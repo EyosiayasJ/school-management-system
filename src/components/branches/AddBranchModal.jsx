@@ -49,10 +49,15 @@ const AddBranchModal = ({ isOpen, onClose, onSubmit }) => {
           animate={{ scale: 1 }}
           exit={{ scale: 0.9 }}
         >
-          <button onClick={onClose} className="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
-            ✖
+          <button
+            className="absolute top-3 right-3 p-1 rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
-
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Branch</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">

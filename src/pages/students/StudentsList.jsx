@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Avatar from '@mui/material/Avatar';
 import { toast } from 'react-hot-toast';
+import { students as mockStudents, branchesList } from '../../../mock-db';
 
 // Modals & Profile
 import AddStudentModal from '../../components/students/AddStudentModal';
@@ -10,21 +11,12 @@ import StudentProfile from '../../components/students/StudentProfile';
 
 const StudentsList = () => {
   // — States —
-  const [students, setStudents] = useState([
-    { id: 1, name: 'John Smith', grade: '10th', branch: 'Main Campus', status: 'active', gpa: 3.75, avatar: '', warnings: 0 },
-    { id: 2, name: 'Sarah Johnson', grade: '8th',  branch: 'East Branch',   status: 'active', gpa: 3.60, avatar: '', warnings: 1 },
-    { id: 3, name: 'Michael Brown', grade: '12th', branch: 'South Branch', status: 'inactive', gpa: 2.95, avatar: '', warnings: 2 },
-    { id: 4, name: 'Emily Davis', grade: '9th', branch: 'West Branch', status: 'active', gpa: 3.85, avatar: '', warnings: 0 },
-    { id: 5, name: 'David Wilson', grade: '11th', branch: 'North Branch', status: 'suspended', gpa: 3.25, avatar: '', warnings: 3, suspensionEnds: new Date(Date.now() + 7*24*60*60*1000).toISOString() },
-    { id: 6, name: 'Jessica Martinez', grade: '7th', branch: 'Main Campus', status: 'active', gpa: 3.90, avatar: '', warnings: 0 },
-  ]);
+  const [students, setStudents] = useState([...mockStudents]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editStudent, setEditStudent] = useState(null);
-
-  const branchesList = ['Main Campus','North Branch','East Branch','West Branch','South Branch'];
 
   // — Handlers —
   const handleAddStudent = (newStudent) => {

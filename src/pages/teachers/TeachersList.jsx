@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { teachers as mockTeachers, branchesList } from '../../../mock-db';
 
 // Components
 import AddTeacherModal from '../../components/teachers/AddTeacherModal';
@@ -15,18 +16,8 @@ const TeachersList = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [editTeacher, setEditTeacher] = useState(null);
   
-  // Branch list for dropdowns
-  const branchesList = ['Main Campus', 'North Branch', 'East Branch', 'West Branch', 'South Branch'];
-  
-  // Sample teacher data with additional fields for disciplinary actions
-  const [teachers, setTeachers] = useState([
-    { id: 1, name: 'Dr. Robert Anderson', subject: 'Mathematics', branch: 'Main Campus', status: 'active', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 2, name: 'Prof. Elizabeth Taylor', subject: 'Science', branch: 'North Branch', status: 'active', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 3, name: 'Mr. James Wilson', subject: 'History', branch: 'Main Campus', status: 'inactive', avatar: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 4, name: 'Ms. Patricia Moore', subject: 'English', branch: 'East Branch', status: 'active', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 5, name: 'Dr. Michael Brown', subject: 'Computer Science', branch: 'South Branch', status: 'active', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-    { id: 6, name: 'Mrs. Jennifer Garcia', subject: 'Art', branch: 'West Branch', status: 'inactive', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-  ]);
+  // Branch list for dropdowns and teacher state
+  const [teachers, setTeachers] = useState([...mockTeachers]);
 
   // Event handlers
   const handleAddTeacher = (newTeacher) => {

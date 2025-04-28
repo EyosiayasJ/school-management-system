@@ -69,10 +69,10 @@ const TeacherProfile = ({ teacher, onClose, onUpdateTeacher, branchesList }) => 
           exit={{ scale: 0.95, y: 20 }}
         >
           {/* Close Button */}
-          <button 
-            onClick={onClose} 
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
+          <button
+            className="absolute top-4 right-4 p-1 rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 z-10"
             aria-label="Close profile"
+            onClick={onClose}
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
