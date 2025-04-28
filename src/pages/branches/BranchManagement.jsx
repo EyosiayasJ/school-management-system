@@ -1,22 +1,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { branches } from '../../mock-db';
+import SkeletonStatCard from '../../components/common/SkeletonStatCard';
 
 const BranchManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
   
-  // Sample branches data
-  const branches = [
-    { id: 1, name: 'Main Campus', location: '123 Education Ave, New York, NY', students: 850, teachers: 45, status: 'active', established: '2005' },
-    { id: 2, name: 'North Branch', location: '456 Learning Blvd, Boston, MA', students: 620, teachers: 32, status: 'active', established: '2010' },
-    { id: 3, name: 'East Branch', location: '789 Knowledge St, Chicago, IL', students: 540, teachers: 28, status: 'active', established: '2012' },
-    { id: 4, name: 'South Branch', location: '321 Wisdom Rd, Miami, FL', students: 480, teachers: 25, status: 'active', established: '2015' },
-    { id: 5, name: 'West Branch', location: '654 Academy Dr, Los Angeles, CA', students: 520, teachers: 27, status: 'inactive', established: '2014' },
-    { id: 6, name: 'Downtown Campus', location: '987 School Lane, Seattle, WA', students: 320, teachers: 18, status: 'inactive', established: '2018' },
-  ];
-
   // Filter branches based on search term and selected filter
-  const filteredBranches = branches.filter(branch => {
+
+    const filteredBranches = branches.filter(branch => {
     const matchesSearch = branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          branch.location.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -40,13 +34,25 @@ const BranchManagement = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <h1 className="text-2xl font-semibold text-gray-900">Branch Management</h1>
         <p className="mt-1 text-sm text-gray-500">Manage multiple school branches and view centralized data</p>
+
       </div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-6">
+        <div className="mb-4">
+            <h1>Branch Management</h1>
+        </div>
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+          {loading ? (
+            <>
+              <SkeletonStatCard />
+              <SkeletonStatCard />
+              <SkeletonStatCard />
+            </>
+          ) : (
+          <>
+          <motion.div
+            initial={{ y:20,opacity:0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
             className="bg-white overflow-hidden shadow rounded-lg"
@@ -71,8 +77,8 @@ const BranchManagement = () => {
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y:20,opacity:0 }}
+            animate={{ y:0,opacity:1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
             className="bg-white overflow-hidden shadow rounded-lg"
           >
@@ -96,8 +102,8 @@ const BranchManagement = () => {
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y:20,opacity:0 }}
+            animate={{ y:0,opacity:1 }}
             transition={{ duration: 0.3, delay: 0.2 }}
             className="bg-white overflow-hidden shadow rounded-lg"
           >
@@ -119,6 +125,9 @@ const BranchManagement = () => {
               </div>
             </div>
           </motion.div>
+          </>
+          )}
+
         </div>
         
         {/* Actions Bar */}
