@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '@mui/material/Avatar';
 
-const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList }) => {
+const EditTeacherModal = ({ isOpen, onClose, onSubmit, teacherData, branchesList }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     middleName: '',
     lastName: '',
-    grade: '',
+    subject: '',
     branch: '',
     status: '',
     avatarFile: null,
@@ -16,21 +16,21 @@ const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList
   const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
-    if (studentData) {
-      const names = studentData.name.split(' ');
+    if (teacherData) {
+      const names = teacherData.name.split(' ');
       setFormData({
         firstName: names[0] || '',
-        middleName: names[1] || '',
-        lastName: names[2] || '',
-        grade: studentData.grade,
-        branch: studentData.branch,
-        status: studentData.status,
+        middleName: names.length > 2 ? names[1] : '',
+        lastName: names.length > 2 ? names[2] : names[1] || '',
+        subject: teacherData.subject,
+        branch: teacherData.branch,
+        status: teacherData.status,
         avatarFile: null,
-        avatarUrl: studentData.avatar,
+        avatarUrl: teacherData.avatar,
       });
-      setPreviewUrl(studentData.avatar);
+      setPreviewUrl(teacherData.avatar);
     }
-  }, [studentData]);
+  }, [teacherData]);
 
   useEffect(() => {
     if (!formData.avatarFile) return;
@@ -60,16 +60,16 @@ const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const updatedStudent = {
-      ...studentData,
-      name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`,
-      grade: formData.grade,
+    const updatedTeacher = {
+      ...teacherData,
+      name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim().replace(/\s+/g, ' '),
+      subject: formData.subject,
       branch: formData.branch,
       status: formData.status,
       avatar: previewUrl || `https://source.boringavatars.com/beam/120/${formData.firstName}${formData.lastName}`,
     };
 
-    onSubmit(updatedStudent);
+    onSubmit(updatedTeacher);
     resetForm();
   };
 
@@ -78,7 +78,7 @@ const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList
       firstName: '',
       middleName: '',
       lastName: '',
-      grade: '',
+      subject: '',
       branch: '',
       status: '',
       avatarFile: null,
@@ -88,7 +88,7 @@ const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList
     onClose();
   };
 
-  if (!isOpen || !studentData) return null;
+  if (!isOpen || !teacherData) return null;
 
   return (
     <AnimatePresence>
@@ -104,11 +104,13 @@ const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList
           animate={{ scale: 1 }}
           exit={{ scale: 0.9 }}
         >
-          <button onClick={resetForm} className="absolute top-3 right-3 text-indianred hover:text-indianred-600">
-            ✖
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-indianred hover:text-indianred-700"
+          >
+            ✕
           </button>
-
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Edit Student</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Edit Teacher</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col items-center">
@@ -135,9 +137,15 @@ const EditStudentModal = ({ isOpen, onClose, onSubmit, studentData, branchesList
             <InputField label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} />
             <InputField label="Middle Name" name="middleName" value={formData.middleName} onChange={handleChange} />
             <InputField label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} />
-            <InputField label="Grade" name="grade" value={formData.grade} onChange={handleChange} />
+            <InputField label="Subject" name="subject" value={formData.subject} onChange={handleChange} />
             <SelectField label="Branch" name="branch" value={formData.branch} options={branchesList} onChange={handleChange} />
-            <SelectField label="Status" name="status" value={formData.status} options={['active', 'inactive']} onChange={handleChange} />
+            <SelectField 
+              label="Status" 
+              name="status" 
+              value={formData.status} 
+              options={['active', 'inactive', 'suspended', 'blacklisted']} 
+              onChange={handleChange} 
+            />
 
             <button
               type="submit"
@@ -182,4 +190,4 @@ const SelectField = ({ label, name, value, options, onChange }) => (
   </div>
 );
 
-export default EditStudentModal;
+export default EditTeacherModal;

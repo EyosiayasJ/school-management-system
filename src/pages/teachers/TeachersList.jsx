@@ -1,19 +1,53 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+
+// Components
+import AddTeacherModal from '../../components/teachers/AddTeacherModal';
+import EditTeacherModal from '../../components/teachers/EditTeacherModal';
+import TeacherProfile from '../../components/teachers/TeacherProfile';
 
 const TeachersList = () => {
+  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [editTeacher, setEditTeacher] = useState(null);
   
-  // Sample teacher data
-  const teachers = [
+  // Branch list for dropdowns
+  const branchesList = ['Main Campus', 'North Branch', 'East Branch', 'West Branch', 'South Branch'];
+  
+  // Sample teacher data with additional fields for disciplinary actions
+  const [teachers, setTeachers] = useState([
     { id: 1, name: 'Dr. Robert Anderson', subject: 'Mathematics', branch: 'Main Campus', status: 'active', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
     { id: 2, name: 'Prof. Elizabeth Taylor', subject: 'Science', branch: 'North Branch', status: 'active', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
     { id: 3, name: 'Mr. James Wilson', subject: 'History', branch: 'Main Campus', status: 'inactive', avatar: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
     { id: 4, name: 'Ms. Patricia Moore', subject: 'English', branch: 'East Branch', status: 'active', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
     { id: 5, name: 'Dr. Michael Brown', subject: 'Computer Science', branch: 'South Branch', status: 'active', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
     { id: 6, name: 'Mrs. Jennifer Garcia', subject: 'Art', branch: 'West Branch', status: 'inactive', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
-  ];
+  ]);
+
+  // Event handlers
+  const handleAddTeacher = (newTeacher) => {
+    setTeachers(prev => [...prev, newTeacher]);
+    toast.success(`${newTeacher.name} added successfully`);
+  };
+
+  const handleUpdateTeacher = (updatedTeacher) => {
+    setTeachers(prev => prev.map(t => t.id === updatedTeacher.id ? updatedTeacher : t));
+    toast.success(`${updatedTeacher.name} updated successfully`);
+    setEditTeacher(null);
+    setSelectedTeacher(null);
+  };
+
+  const handleViewTeacher = (teacher) => {
+    setSelectedTeacher(teacher);
+  };
+
+  const handleEditTeacher = (teacher) => {
+    setEditTeacher(teacher);
+  };
 
   // Filter teachers based on search term and selected filter
   const filteredTeachers = teachers.filter(teacher => {
@@ -69,6 +103,8 @@ const TeachersList = () => {
                   <option value="all">All Teachers</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="blacklisted">Blacklisted</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -80,7 +116,10 @@ const TeachersList = () => {
             
             {/* Actions */}
             <div>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
                 <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -124,14 +163,22 @@ const TeachersList = () => {
                           </p>
                         </div>
                         <div className="flex-shrink-0 flex space-x-2">
-                          <button className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <button 
+                            onClick={() => handleViewTeacher(teacher)}
+                            className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            aria-label="View teacher profile"
+                          >
                             <span className="sr-only">View</span>
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                           </button>
-                          <button className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <button 
+                            onClick={() => handleEditTeacher(teacher)}
+                            className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            aria-label="Edit teacher information"
+                          >
                             <span className="sr-only">Edit</span>
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -169,8 +216,38 @@ const TeachersList = () => {
           </nav>
         </div>
       </div>
+
+      {/* Modals and Drawers */}
+      {isAddModalOpen && (
+        <AddTeacherModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddTeacher}
+          branchesList={branchesList}
+        />
+      )}
+
+      {editTeacher && (
+        <EditTeacherModal
+          isOpen={!!editTeacher}
+          onClose={() => setEditTeacher(null)}
+          onSubmit={handleUpdateTeacher}
+          teacherData={editTeacher}
+          branchesList={branchesList}
+        />
+      )}
+
+      {selectedTeacher && (
+        <TeacherProfile
+          teacher={selectedTeacher}
+          onClose={() => setSelectedTeacher(null)}
+          onUpdateTeacher={handleUpdateTeacher}
+          branchesList={branchesList}
+        />
+      )}
     </div>
   );
 };
+
 
 export default TeachersList;

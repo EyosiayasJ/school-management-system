@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ToastProvider from './components/common/ToastProvider';
 import { useState } from 'react';
 
 // Layout
@@ -27,6 +28,7 @@ function App() {
 
   return (
     <Router>
+      <ToastProvider />
       <Routes>
         {/* Auth Routes */}
         <Route path="/login" element={<Login onLogin={login} />} />

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Avatar from '@mui/material/Avatar';
+import { toast } from 'react-hot-toast';
 
 // Modals & Profile
 import AddStudentModal from '../../components/students/AddStudentModal';
@@ -10,9 +11,12 @@ import StudentProfile from '../../components/students/StudentProfile';
 const StudentsList = () => {
   // — States —
   const [students, setStudents] = useState([
-    { id: 1, name: 'John Smith', grade: '10th', branch: 'Main Campus', status: 'active', gpa: 3.75, avatar: '' },
-    { id: 2, name: 'Sarah Johnson', grade: '8th',  branch: 'East Branch',   status: 'active', gpa: 3.60, avatar: '' },
-    { id: 3, name: 'Michael Brown', grade: '12th', branch: 'South Branch', status: 'inactive', gpa: 2.95, avatar: '' },
+    { id: 1, name: 'John Smith', grade: '10th', branch: 'Main Campus', status: 'active', gpa: 3.75, avatar: '', warnings: 0 },
+    { id: 2, name: 'Sarah Johnson', grade: '8th',  branch: 'East Branch',   status: 'active', gpa: 3.60, avatar: '', warnings: 1 },
+    { id: 3, name: 'Michael Brown', grade: '12th', branch: 'South Branch', status: 'inactive', gpa: 2.95, avatar: '', warnings: 2 },
+    { id: 4, name: 'Emily Davis', grade: '9th', branch: 'West Branch', status: 'active', gpa: 3.85, avatar: '', warnings: 0 },
+    { id: 5, name: 'David Wilson', grade: '11th', branch: 'North Branch', status: 'suspended', gpa: 3.25, avatar: '', warnings: 3, suspensionEnds: new Date(Date.now() + 7*24*60*60*1000).toISOString() },
+    { id: 6, name: 'Jessica Martinez', grade: '7th', branch: 'Main Campus', status: 'active', gpa: 3.90, avatar: '', warnings: 0 },
   ]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -25,19 +29,16 @@ const StudentsList = () => {
   // — Handlers —
   const handleAddStudent = (newStudent) => {
     setStudents(prev => [...prev, newStudent]);
+    toast.success(`${newStudent.name} added successfully`);
     setIsAddModalOpen(false);
   };
   const handleUpdateStudent = (updated) => {
     setStudents(prev => prev.map(s => s.id === updated.id ? updated : s));
+    toast.success(`${updated.name} updated successfully`);
     setEditStudent(null);
     setSelectedStudent(null);
   };
-  const handleTerminateStudent = (id) => {
-    setStudents(prev => prev.map(s => s.id === id ? { ...s, status: 'inactive' } : s));
-    setSelectedStudent(null);
-  };
   const handleView = student => setSelectedStudent(student);
-  const handleCloseProfile = () => setSelectedStudent(null);
   const handleEdit = student => setEditStudent(student);
 
   // — Filtering —
@@ -61,57 +62,64 @@ const StudentsList = () => {
 
       {/* Actions Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-6">
-        <div className="bg-white shadow rounded-lg p-4 mb-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-          {/* Search */}
-          <div className="w-full md:w-1/3">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 ... z" clipRule="evenodd"/>
-                </svg>
+        <div className="bg-white shadow rounded-lg p-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+            {/* Search */}
+            <div className="w-full md:w-1/3">
+              <label htmlFor="search" className="sr-only">Search</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <input
+                  id="search"
+                  type="search"
+                  placeholder="Search students..."
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              <input
-                type="search"
-                placeholder="Search students..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
             </div>
-          </div>
 
-          {/* Filter */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500">Status:</span>
-            <div className="relative inline-flex">
-              <select
-                className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={selectedFilter}
-                onChange={e => setSelectedFilter(e.target.value)}
+            {/* Filter */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Status:</span>
+              <div className="relative inline-flex">
+                <select
+                  className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedFilter}
+                  onChange={(e) => setSelectedFilter(e.target.value)}
+                >
+                  <option value="all">All Students</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="blacklisted">Blacklisted</option>
+                  <option value="expelled">Expelled</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Add Student */}
+            <div>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                <option value="all">All Students</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 ... z" clipRule="evenodd"/>
+                <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-              </div>
+                Add Student
+              </button>
             </div>
-          </div>
-
-          {/* Add Student */}
-          <div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700"
-            >
-              <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 ... z"/>
-              </svg>
-              Add Student
-            </button>
           </div>
         </div>
 
@@ -148,10 +156,11 @@ const StudentsList = () => {
                       <span className="px-2 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                         {s.branch}
                       </span>
-                      <span className={`px-2 text-xs font-semibold rounded-full ${
-                        s.status==='active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                      <span className={`px-2 text-xs font-semibold rounded-full capitalize ${
+                        s.status === 'active' ? 'bg-green-100 text-green-800' :
+                        s.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                        s.status === 'suspended' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
                       }`}>
                         {s.status}
                       </span>
@@ -216,9 +225,8 @@ const StudentsList = () => {
       {selectedStudent && (
         <StudentProfile
           student={selectedStudent}
-          onClose={handleCloseProfile}
+          onClose={() => setSelectedStudent(null)}
           onUpdateStudent={handleUpdateStudent}
-          onTerminateStudent={handleTerminateStudent}
           branchesList={branchesList}
         />
       )}

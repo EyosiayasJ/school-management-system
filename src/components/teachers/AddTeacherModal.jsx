@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '@mui/material/Avatar';
 
-const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
+const AddTeacherModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     middleName: '',
     lastName: '',
-    grade: '',
+    subject: '',
     branch: branchesList[0] || '',
     status: 'active',
     avatarFile: null,
@@ -44,15 +44,17 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
   };
 
   const handleConfirm = () => {
-    const newStudent = {
+    const newTeacher = {
       id: Date.now(),
-      name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`,
-      grade: formData.grade,
+      name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
+      subject: formData.subject,
       branch: formData.branch,
       status: formData.status,
       avatar: previewUrl || `https://source.boringavatars.com/beam/120/${formData.firstName}${formData.lastName}`,
+      warnings: 0,
+      suspensionEnds: null,
     };
-    onSubmit(newStudent);
+    onSubmit(newTeacher);
     resetForm();
   };
 
@@ -61,7 +63,7 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
       firstName: '',
       middleName: '',
       lastName: '',
-      grade: '',
+      subject: '',
       branch: branchesList[0] || '',
       status: 'active',
       avatarFile: null,
@@ -86,20 +88,23 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
           animate={{ scale: 1 }}
           exit={{ scale: 0.9 }}
         >
-          <button onClick={resetForm} className="absolute top-3 right-3 text-indianred hover:text-indianred-600">
-            ✖
-          </button>
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Student</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Teacher</h2>
 
           {!showConfirmation ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <InputField label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} />
               <InputField label="Middle Name" name="middleName" value={formData.middleName} onChange={handleChange} />
               <InputField label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} />
-              <InputField label="Grade" name="grade" value={formData.grade} onChange={handleChange} />
+              <InputField label="Subject" name="subject" value={formData.subject} onChange={handleChange} />
               <SelectField label="Branch" name="branch" value={formData.branch} options={branchesList} onChange={handleChange} />
-              <SelectField label="Status" name="status" value={formData.status} options={['active', 'inactive']} onChange={handleChange} />
+              <SelectField 
+                label="Status" 
+                name="status" 
+                value={formData.status} 
+                options={['active', 'inactive', 'suspended', 'blacklisted']} 
+                onChange={handleChange} 
+              />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Upload Avatar (optional)</label>
@@ -120,7 +125,7 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
             </form>
           ) : (
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800">Confirm New Student</h3>
+              <h3 className="text-xl font-semibold text-gray-800">Confirm New Teacher</h3>
               <div className="flex justify-center">
                 {previewUrl ? (
                   <img src={previewUrl} alt="Avatar" className="h-24 w-24 rounded-full object-cover" />
@@ -132,7 +137,7 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
               </div>
               <ul className="text-gray-700 space-y-1 text-left">
                 <li><strong>Name:</strong> {formData.firstName} {formData.middleName} {formData.lastName}</li>
-                <li><strong>Grade:</strong> {formData.grade}</li>
+                <li><strong>Subject:</strong> {formData.subject}</li>
                 <li><strong>Branch:</strong> {formData.branch}</li>
                 <li><strong>Status:</strong> {formData.status}</li>
               </ul>
@@ -182,4 +187,4 @@ const SelectField = ({ label, name, value, options, onChange }) => (
   </div>
 );
 
-export default AddStudentModal;
+export default AddTeacherModal;
