@@ -80,6 +80,13 @@ export const events = [
   { id: 5, title: 'Music Competition', start: '2025-07-05T10:00', end: '2025-07-05T14:00', location: 'Music Hall', type: 'competition', branch: 'Suburb Branch' },
   { id: 6, title: 'Staff Training', start: '2025-07-10T09:00', end: '2025-07-10T16:00', location: 'Training Room', type: 'training', branch: 'Midtown Branch' },
   { id: 7, title: 'School Picnic', start: '2025-07-15T08:00', end: '2025-07-15T18:00', location: 'Central Park', type: 'picnic', branch: 'All Branches' },
-  { id: 8, title: 'Graduation Day', start: '2025-07-20T10:00', end: '2025-07-20T14:00', location: 'Main Auditorium', type: 'ceremony', branch: 'Main Campus' }
-
+  { id: 8, title: 'Graduation Day', start: '2025-07-20T10:00', end: '2025-07-20T14:00', location: 'Main Auditorium', type: 'ceremony', branch: 'Main Campus' },
+  { id: 9, title: 'MOAC Orientation', start: '2023-07-01T09:00', end: '2023-07-01T12:00', location: 'Main Auditorium', type: 'orientation', branch: 'Main Campus' },
+  { id: 10, title: 'MOAC Workshop', start: '2023-07-03T10:00', end: '2023-07-03T15:00', location: 'Computer Lab', type: 'workshop', branch: 'Main Campus' },
+  { id: 11, title: 'MOAC Training Session', start: '2023-07-08T09:00', end: '2023-07-08T17:00', location: 'Training Room', type: 'training', branch: 'Main Campus' },
+  { id: 12, title: 'MOAC Certification', start: '2023-07-12T10:00', end: '2023-07-12T16:00', location: 'Exam Hall', type: 'certification', branch: 'Main Campus' },
+  { id: 13, title: 'MOAC Graduation', start: '2023-07-15T14:00', end: '2023-07-15T18:00', location: 'Main Auditorium', type: 'graduation', branch: 'Main Campus' },
+  { id: 14, title: 'MOAC Alumni Meet', start: '2023-07-20T11:00', end: '2023-07-20T15:00', location: 'Conference Hall', type: 'meeting', branch: 'Main Campus' },
+  { id: 15, title: 'MOAC Career Fair', start: '2023-07-25T09:00', end: '2023-07-25T17:00', location: 'Exhibition Hall', type: 'fair', branch: 'Main Campus' },
+  { id: 16, title: 'MOAC Hackathon', start: '2023-07-28T08:00', end: '2023-07-29T20:00', location: 'Computer Lab', type: 'competition', branch: 'Main Campus' }
 ];

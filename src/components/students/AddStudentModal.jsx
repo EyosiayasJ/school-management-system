@@ -81,13 +81,13 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative"
+          className="bg-white rounded-lg shadow-lg w-full max-w-md min-h-[600px] max-h-[90vh] p-0 relative overflow-hidden"
           initial={{ scale: 0.9 }}
           animate={{ scale: 1 }}
           exit={{ scale: 0.9 }}
         >
           <button
-            className="absolute top-3 right-3 p-1 rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            className="absolute top-4 right-4 p-1 rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 z-10"
             aria-label="Close"
             onClick={onClose}
           >
@@ -96,7 +96,22 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
             </svg>
           </button>
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add New Student</h2>
+          <div className="bg-blue-600 text-white p-6 flex items-center">
+  <div className="h-12 w-12 rounded-full bg-blue-800 flex items-center justify-center text-xl font-bold mr-4">
+    <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+  </div>
+  <div>
+    <h2 className="text-2xl font-bold">Add New Student</h2>
+    <p className="text-blue-100">Student</p>
+  </div>
+</div>
+<div className="border-b border-gray-200">
+  <nav className="flex -mb-px">
+    <button className="py-4 px-6 text-sm font-medium border-b-2 border-blue-500 text-blue-600">Information</button>
+    <button className="py-4 px-6 text-sm font-medium text-gray-500 hover:text-gray-700">Other</button>
+  </nav>
+</div>
+<div className="p-6 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(90vh - 160px)' }}>
 
           {!showConfirmation ? (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -152,9 +167,10 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit, branchesList }) => {
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
+  </AnimatePresence>
   );
 };
 

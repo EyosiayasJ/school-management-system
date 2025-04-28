@@ -1,0 +1,7 @@
+.rbc-day-bg {
+  background-color: #EFF6FF !important; /* Tailwind bg-blue-50 */
+}
+
+.rbc-off-range-bg {
+  background-color: #F3F4F6 !important; /* Tailwind bg-gray-100 for off-range days */
+}

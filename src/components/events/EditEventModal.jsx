@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const EditEventModal = ({ isOpen, onClose, onSubmit, event, branches }) => {
   const [formData, setFormData] = useState({
@@ -67,26 +67,44 @@ const EditEventModal = ({ isOpen, onClose, onSubmit, event, branches }) => {
 
   return (
     <AnimatePresence>
-      <div
-        className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+      <motion.div
+        className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
       >
-        <div
-          className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Edit Event</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-              aria-label="Close"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+        <motion.div
+  className="bg-white rounded-lg shadow-lg w-full max-w-md min-h-[600px] max-h-[90vh] relative overflow-hidden"
+  initial={{ scale: 0.9 }}
+  animate={{ scale: 1 }}
+  exit={{ scale: 0.9 }}
+>
+  <button
+    onClick={onClose}
+    className="absolute top-4 right-4 p-1 rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 z-10"
+    aria-label="Close"
+  >
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+  <div className="bg-blue-600 text-white p-6 flex items-center">
+    <div className="h-12 w-12 rounded-full bg-blue-800 flex items-center justify-center text-xl font-bold mr-4">
+      <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+    </div>
+    <div>
+      <h2 className="text-2xl font-bold">{formData.title || 'Edit Event'}</h2>
+      <p className="text-blue-100">{formData.type ? formData.type.charAt(0).toUpperCase() + formData.type.slice(1) : ''}</p>
+    </div>
+  </div>
+  <div className="border-b border-gray-200">
+    <nav className="flex -mb-px">
+      <button className="py-4 px-6 text-sm font-medium border-b-2 border-blue-500 text-blue-600">Information</button>
+      <button className="py-4 px-6 text-sm font-medium text-gray-500 hover:text-gray-700">Attendees</button>
+    </nav>
+  </div>
+  <div className="p-6 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(90vh - 160px)' }}>
 
-          <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               {/* Title */}
               <div>
@@ -244,9 +262,10 @@ const EditEventModal = ({ isOpen, onClose, onSubmit, event, branches }) => {
                 Save Changes
               </button>
             </div>
-          </form>
+
         </div>
-      </div>
+      </motion.div>
+      </motion.div>
     </AnimatePresence>
   );
 };

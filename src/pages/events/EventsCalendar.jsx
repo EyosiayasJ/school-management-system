@@ -1,27 +1,64 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import CustomToolbar from './CustomToolbar';
+import format from 'date-fns/format';
+import parse from 'date-fns/parse';
+import startOfWeek from 'date-fns/startOfWeek';
+import getDay from 'date-fns/getDay';
+import enUS from 'date-fns/locale/en-US';
 import { events as mockEvents, branches } from '../../../mock-db.js';
 import { toast } from 'react-hot-toast';
 import AddEventModal from '../../components/events/AddEventModal';
 import EditEventModal from '../../components/events/EditEventModal';
 import ViewEventModal from '../../components/events/ViewEventModal';
 import ConfirmDeleteModal from '../../components/events/ConfirmDeleteModal';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+
+const locales = {
+  'en-US': enUS
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
+});
 
 const EventsCalendar = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [allEvents, setAllEvents] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
   // Initialize events from mock database
   useEffect(() => {
-    setAllEvents(mockEvents);
+    console.log('Loading mock events:', mockEvents);
+    const savedEvents = localStorage.getItem('events');
+    if (savedEvents && JSON.parse(savedEvents).length > 0) {
+      console.log('Loading saved events:', JSON.parse(savedEvents));
+      setAllEvents(JSON.parse(savedEvents));
+    } else {
+      console.log('Setting mock events');
+      setAllEvents(mockEvents);
+      localStorage.setItem('events', JSON.stringify(mockEvents));
+    }
   }, []);
+
+  // Save events to localStorage whenever they change
+  useEffect(() => {
+    console.log('Events updated:', allEvents);
+    localStorage.setItem('events', JSON.stringify(allEvents));
+  }, [allEvents]);
 
   // Filter events based on search term and selected filter
   const filteredEvents = allEvents.filter(event => {
@@ -34,60 +71,30 @@ const EventsCalendar = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // Format date to more readable format
-  const formatDate = (dateString) => {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
+  console.log('Filtered events:', filteredEvents);
 
-  // Get unique event types for filter dropdown
-  const eventTypes = ['all', ...new Set(allEvents.map(event => event.type))];
+  // Format events for react-big-calendar
+  const calendarEvents = filteredEvents.map(event => {
+    const startDate = new Date(event.start);
+    const endDate = new Date(event.end);
+    console.log('Formatting event:', event.title, 'Start:', startDate, 'End:', endDate);
+    
+    return {
+      ...event,
+      start: startDate,
+      end: endDate,
+      title: event.title,
+      resource: event
+    };
+  });
 
-  // Generate calendar days for the current month view
-  const generateCalendarDays = () => {
-    const days = [];
-    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
-    const lastDayOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
-    const daysInMonth = lastDayOfMonth.getDate();
-    const startingDay = firstDayOfMonth.getDay();
-    
-    // Add empty cells for days before the 1st of the month
-    for (let i = 0; i < startingDay; i++) {
-      days.push({ day: null, events: [], isToday: false });
-    }
-    
-    // Add days of the month
-    for (let i = 1; i <= daysInMonth; i++) {
-      const currentDate = new Date(selectedYear, selectedMonth, i);
-      const dayEvents = filteredEvents.filter(event => {
-        const eventDate = new Date(event.start);
-        return eventDate.getDate() === i && 
-               eventDate.getMonth() === selectedMonth && 
-               eventDate.getFullYear() === selectedYear;
-      });
-      
-      const today = new Date();
-      const isToday = currentDate.getDate() === today.getDate() && 
-                     currentDate.getMonth() === today.getMonth() && 
-                     currentDate.getFullYear() === today.getFullYear();
-      
-      days.push({
-        day: i,
-        events: dayEvents,
-        isToday: isToday,
-      });
-    }
-    
-    return days;
-  };
-
-  const calendarDays = generateCalendarDays();
+  console.log('Calendar events:', calendarEvents);
 
   // Handle Add Event
   const handleAddEvent = (newEvent) => {
     const eventWithId = {
       ...newEvent,
-      id: Date.now(), // Generate a unique ID
+      id: Date.now(),
     };
     setAllEvents(prev => [...prev, eventWithId]);
     setShowAddModal(false);
@@ -128,109 +135,117 @@ const EventsCalendar = () => {
     }
   };
 
-  // Handle month navigation
-  const handleMonthChange = (e) => {
-    setSelectedMonth(parseInt(e.target.value));
+  // Handle calendar event selection
+  const handleSelectEvent = (event) => {
+    handleEventAction(event.resource, 'view');
   };
 
-  // Handle year navigation
-  const handleYearChange = (e) => {
-    setSelectedYear(parseInt(e.target.value));
+  // Handle calendar slot selection (for adding new events)
+  const handleSelectSlot = (slotInfo) => {
+    const newEvent = {
+      start: slotInfo.start,
+      end: slotInfo.end,
+      title: '',
+      location: '',
+      type: 'meeting',
+      branch: branches[0]
+    };
+    setSelectedEvent(newEvent);
+    setShowAddModal(true);
   };
+
+  // Handle month/year change
+  const handleMonthYearChange = (newDate) => {
+    setSelectedMonth(newDate.getMonth());
+    setSelectedYear(newDate.getFullYear());
+  };
+
+  // Generate month options
+  const months = Array.from({ length: 12 }, (_, i) => 
+    new Date(2000, i, 1).toLocaleString('default', { month: 'long' })
+  );
+
+  // Generate year options (current year ± 5 years)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
   return (
     <div className="py-6">
+      {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Events Calendar</h1>
-        <p className="mt-1 text-sm text-gray-500">Schedule and manage school events, activities, and reminders</p>
+        <motion.h1 
+          initial={{ opacity: 0, y: -10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.3 }} 
+          className="text-3xl font-bold text-gray-900"
+        >
+          Events Calendar
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.3, delay: 0.1 }} 
+          className="mt-1 text-sm text-gray-500"
+        >
+          Manage and track all school events, meetings, and activities
+        </motion.p>
       </div>
-      
+
+      {/* Action Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-6">
-        {/* Actions Bar */}
-        <div className="bg-white shadow rounded-lg p-4 mb-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.3 }} 
+          className="bg-white shadow rounded-lg p-4 mb-6"
+        >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
             {/* Search */}
-            <div className="w-full md:w-1/3">
-              <label htmlFor="search" className="sr-only">Search</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <input
-                  id="search"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Search events..."
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            
+            <div className="w-full md:w-2/5 mr-6">
+  <label htmlFor="search" className="sr-only">Search</label>
+  <div className="relative">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+      </svg>
+    </div>
+    <input
+      id="search"
+      type="search"
+      placeholder="Search events..."
+      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
+      style={{ minWidth: 320, maxWidth: 500 }}
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+  </div>
+</div>
+
             {/* Filters */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500">Type:</span>
-              <div className="relative inline-flex">
-                <select
-                  className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedFilter}
-                  onChange={(e) => setSelectedFilter(e.target.value)}
-                >
-                  {eventTypes.map((type, index) => (
-                    <option key={index} value={type}>
-                      {type === 'all' ? 'All Events' : type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Type:</span>
+                <div className="relative inline-flex">
+                  <select
+                    className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    value={selectedFilter}
+                    onChange={(e) => setSelectedFilter(e.target.value)}
+                  >
+                    <option value="all">All Events</option>
+                    <option value="orientation">Orientation</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="training">Training</option>
+                    <option value="certification">Certification</option>
+                    <option value="graduation">Graduation</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="fair">Fair</option>
+                    <option value="competition">Competition</option>
+                  </select>
                 </div>
               </div>
-            </div>
-            
-            {/* Month and Year Selector */}
-            <div className="flex items-center space-x-2">
-              <div className="relative inline-flex">
-                <select
-                  className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedMonth}
-                  onChange={handleMonthChange}
-                >
-                  {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => (
-                    <option key={month} value={index}>{month}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-              <div className="relative inline-flex">
-                <select
-                  className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                >
-                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            
-            {/* Actions */}
-            <div>
-              <button 
+
+              {/* Add Event Button */}
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
@@ -241,145 +256,188 @@ const EventsCalendar = () => {
               </button>
             </div>
           </div>
-        </div>
-        
+        </motion.div>
+
         {/* Calendar View */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          {/* Calendar Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}
-            </h2>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.3, delay: 0.1 }} 
+          className="bg-white shadow rounded-lg overflow-hidden"
+        >
+          <div className="p-6">
+            <Calendar
+              localizer={localizer}
+              events={calendarEvents}
+              startAccessor="start"
+              endAccessor="end"
+              style={{ height: 600 }}
+              onSelectEvent={handleSelectEvent}
+              onSelectSlot={handleSelectSlot}
+              selectable
+              views={['month', 'week', 'day', 'agenda']}
+              defaultView="month"
+              date={new Date(selectedYear, selectedMonth)}
+              onNavigate={handleMonthYearChange}
+              components={{ toolbar: CustomToolbar }}
+              eventPropGetter={(event) => ({
+                style: (() => {
+                    // getEventTypeColor returns e.g. 'bg-purple-100 text-purple-800'
+                    const colorClass = getEventTypeColor(event.resource?.type || event.type);
+                    // Map Tailwind classes to hex codes
+                    const colorMap = {
+                      'bg-purple-100': '#F3E8FF', 'text-purple-800': '#6D28D9',
+                      'bg-blue-100': '#DBEAFE', 'text-blue-800': '#1E40AF',
+                      'bg-green-100': '#D1FAE5', 'text-green-800': '#065F46',
+                      'bg-yellow-100': '#FEF9C3', 'text-yellow-800': '#92400E',
+                      'bg-indigo-100': '#E0E7FF', 'text-indigo-800': '#3730A3',
+                      'bg-pink-100': '#FCE7F3', 'text-pink-800': '#9D174D',
+                      'bg-orange-100': '#FFEDD5', 'text-orange-800': '#9A3412',
+                      'bg-red-100': '#FECACA', 'text-red-800': '#991B1B',
+                      'bg-gray-100': '#F3F4F6', 'text-gray-800': '#1F2937',
+                    };
+                    const [bgClass, textClass] = colorClass.split(' ');
+                    return {
+                      backgroundColor: colorMap[bgClass] || '#DBEAFE',
+                      color: colorMap[textClass] || '#1E40AF',
+                      border: `1px solid ${colorMap[bgClass]?.replace('100', '400') || '#60A5FA'}`,
+                      borderRadius: '12px',
+                      padding: '2px 8px',
+                      margin: '1px 0',
+                      width: '100%',
+                      minWidth: '0',
+                      maxWidth: '100%',
+                      display: 'block',
+                      fontWeight: 600,
+                      fontSize: '0.92rem',
+                      letterSpacing: '0.01em',
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      boxShadow: '0 1px 3px 0 rgba(59,130,246,0.07)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    };
+                  })(),
+              })}
+              dayPropGetter={(date) => {
+                const hasEvent = calendarEvents.some(event => {
+                  return (
+                    event.start.getFullYear() === date.getFullYear() &&
+                    event.start.getMonth() === date.getMonth() &&
+                    event.start.getDate() === date.getDate()
+                  );
+                });
+                return hasEvent
+                  ? { style: { backgroundColor: '#EFF6FF', transition: 'background 0.2s' } }
+                  : { style: {} };
+              }}
+            />
           </div>
-          
-          {/* Weekday Headers */}
-          <div className="grid grid-cols-7 gap-px bg-gray-200 border-b border-gray-200">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="bg-white px-2 py-3">
-                <p className="text-xs font-medium text-center text-gray-500">{day}</p>
-              </div>
-            ))}
+        </motion.div>
+
+        {/* Upcoming Events */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.3, delay: 0.2 }} 
+          className="mt-6 bg-white shadow rounded-lg"
+        >
+          <div className="px-6 py-5 sm:px-6 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">Upcoming Events</h2>
           </div>
-          
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-px bg-gray-200">
-            {/* Calendar days */}
-            {calendarDays.map((day, index) => (
-              <div 
-                key={index}
-                className={`bg-white px-2 py-2 h-32 overflow-y-auto ${day.isToday ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
-              >
-                {day.day && (
-                  <>
-                    <p className={`text-sm font-medium ${day.isToday ? 'text-blue-600' : 'text-gray-700'}`}>
-                      {day.day}
-                    </p>
-                    {day.events.map((event) => (
-                      <div 
-                        key={event.id} 
-                        className={`mt-1 px-2 py-1 text-xs rounded-md ${getEventTypeColor(event.type)} cursor-pointer`}
-                        onClick={() => handleEventAction(event, 'view')}
-                      >
-                        <p className="font-medium truncate">{event.title}</p>
-                        <p className="truncate">{new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Upcoming Events List */}
-        <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Upcoming Events</h2>
-          </div>
-          
-          <ul className="divide-y divide-gray-200">
+          <div className="p-6">
             {filteredEvents.length > 0 ? (
-              filteredEvents.map((event) => (
-                <li 
-                  key={event.id}
-                  className="px-6 py-4 hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-blue-600">{event.title}</h3>
-                      <p className="mt-1 text-xs text-gray-500">{formatDate(event.start)} at {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                      <div className="mt-1 flex items-center">
-                        <svg className="h-4 w-4 text-gray-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <p className="text-xs text-gray-500">{event.location}</p>
+              <ul className="divide-y divide-gray-200">
+                {filteredEvents.map((event, index) => (
+                  <motion.li
+                    key={event.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="py-4 hover:bg-gray-50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center ${getEventTypeColor(event.type)}`}>
+                            <span className="text-lg font-medium">
+                              {event.title.charAt(0)}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-900">{event.title}</h3>
+                          <p className="text-sm text-gray-500">
+                            {format(new Date(event.start), 'PPP')} at {format(new Date(event.start), 'p')}
+                          </p>
+                          <div className="mt-1 flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEventTypeBadgeColor(event.type)}`}>
+                              {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                            </span>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {event.branch}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEventTypeBadgeColor(event.type)}`}>
-                        {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                      </span>
-                      <span className="ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {event.branch}
-                      </span>
-                      <div className="ml-4 flex-shrink-0 flex space-x-2">
-                        <button 
+                      <div className="flex items-center space-x-2">
+                        <button
                           onClick={() => handleEventAction(event, 'view')}
-                          className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          aria-label="View event"
+                          className="p-1 rounded-full text-blue-600 hover:bg-blue-100"
+                          title="View"
                         >
-                          <span className="sr-only">View</span>
                           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleEventAction(event, 'edit')}
-                          className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          aria-label="Edit event"
+                          className="p-1 rounded-full text-blue-600 hover:bg-blue-100"
+                          title="Edit"
                         >
-                          <span className="sr-only">Edit</span>
                           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleEventAction(event, 'delete')}
-                          className="p-1 rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                          aria-label="Delete event"
+                          className="p-1 rounded-full text-red-600 hover:bg-red-100"
+                          title="Delete"
                         >
-                          <span className="sr-only">Delete</span>
                           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))
+                  </motion.li>
+                ))}
+              </ul>
             ) : (
-              <li className="px-6 py-6 text-center text-gray-500">
-                No events found matching your search criteria.
-              </li>
+              <div className="text-center py-6">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No events found</h3>
+                <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
+              </div>
             )}
-          </ul>
-        </div>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Add Event Modal */}
+      {/* Modals */}
       {showAddModal && (
         <AddEventModal
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
           onSubmit={handleAddEvent}
           branches={branches}
+          initialEvent={selectedEvent}
         />
       )}
 
-      {/* Edit Event Modal */}
       {showEditModal && selectedEvent && (
         <EditEventModal
           isOpen={showEditModal}
@@ -393,7 +451,6 @@ const EventsCalendar = () => {
         />
       )}
 
-      {/* View Event Modal */}
       {showViewModal && selectedEvent && (
         <ViewEventModal
           isOpen={showViewModal}
@@ -405,7 +462,6 @@ const EventsCalendar = () => {
         />
       )}
 
-      {/* Delete Event Modal */}
       {showDeleteModal && selectedEvent && (
         <ConfirmDeleteModal
           isOpen={showDeleteModal}
@@ -424,20 +480,22 @@ const EventsCalendar = () => {
 // Helper function to get color classes based on event type
 const getEventTypeColor = (type) => {
   switch (type) {
-    case 'ceremony':
+    case 'orientation':
       return 'bg-purple-100 text-purple-800';
-    case 'meeting':
+    case 'workshop':
       return 'bg-blue-100 text-blue-800';
-    case 'fair':
+    case 'training':
       return 'bg-green-100 text-green-800';
-    case 'sports':
+    case 'certification':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'graduation':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'meeting':
+      return 'bg-pink-100 text-pink-800';
+    case 'fair':
       return 'bg-orange-100 text-orange-800';
     case 'competition':
-      return 'bg-pink-100 text-pink-800';
-    case 'training':
-      return 'bg-indigo-100 text-indigo-800';
-    case 'picnic':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -446,20 +504,22 @@ const getEventTypeColor = (type) => {
 // Helper function to get badge color classes based on event type
 const getEventTypeBadgeColor = (type) => {
   switch (type) {
-    case 'ceremony':
+    case 'orientation':
       return 'bg-purple-100 text-purple-800';
-    case 'meeting':
+    case 'workshop':
       return 'bg-blue-100 text-blue-800';
-    case 'fair':
+    case 'training':
       return 'bg-green-100 text-green-800';
-    case 'sports':
+    case 'certification':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'graduation':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'meeting':
+      return 'bg-pink-100 text-pink-800';
+    case 'fair':
       return 'bg-orange-100 text-orange-800';
     case 'competition':
-      return 'bg-pink-100 text-pink-800';
-    case 'training':
-      return 'bg-indigo-100 text-indigo-800';
-    case 'picnic':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
