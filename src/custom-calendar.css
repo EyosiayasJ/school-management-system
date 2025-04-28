@@ -1,7 +1,71 @@
 .rbc-day-bg {
-  background-color: #EFF6FF !important; /* Tailwind bg-blue-50 */
+  background-color: #F8FAFC !important;
+  border-right: 1px solid #E2E8F0 !important;
+  border-bottom: 1px solid #E2E8F0 !important;
 }
 
 .rbc-off-range-bg {
-  background-color: #F3F4F6 !important; /* Tailwind bg-gray-100 for off-range days */
+  background-color: #F1F5F9 !important;
+  opacity: 0.6 !important;
+}
+
+.rbc-header {
+  background-color: #F8FAFC !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  padding: 8px 0 !important;
+  font-weight: 500 !important;
+}
+
+.rbc-today {
+  background-color: #EFF6FF !important;
+}
+
+.rbc-event {
+  border-radius: 6px !important;
+  border: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+  padding: 6px 10px !important;
+  font-size: 0.9rem !important;
+  margin: 2px 1px !important;
+  min-height: 40px !important;
+}
+
+.rbc-event:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15) !important;
+}
+
+.rbc-event.meeting {
+  background-color: #3B82F6 !important;
+}
+
+.rbc-event.holiday {
+  background-color: #10B981 !important;
+}
+
+.rbc-event.exam {
+  background-color: #F59E0B !important;
+}
+
+.rbc-event.activity {
+  background-color: #8B5CF6 !important;
+}
+
+.rbc-event-content {
+  color: white !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.025em !important;
+  line-height: 1.5 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+.rbc-event-time {
+  display: block !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 2px !important;
+  opacity: 0.9 !important;
 }

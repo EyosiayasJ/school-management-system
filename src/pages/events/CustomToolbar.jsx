@@ -45,7 +45,7 @@ const CustomToolbar = (props) => {
   }, [dropdownOpen]);
 
   return (
-    <div className="flex items-center justify-between mb-4" style={{ minHeight: 40 }}>
+    <div className="flex items-center justify-between mb-4 mx-auto w-full" style={{ minHeight: 40, maxWidth: 740, width: '100%' }}>
       <div className="flex items-center space-x-2">
         <button
           type="button"
@@ -67,7 +67,7 @@ const CustomToolbar = (props) => {
               onClick={() => setDropdownOpen(dropdownOpen === 'month' ? false : 'month')}
               aria-haspopup="listbox"
               aria-expanded={dropdownOpen === 'month'}
-              style={{ minWidth: 100 }}
+              style={{ minWidth: 120, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
               {monthNames[selectedMonth]}
               <svg className="ml-1 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +97,7 @@ const CustomToolbar = (props) => {
               onClick={() => setDropdownOpen(dropdownOpen === 'year' ? false : 'year')}
               aria-haspopup="listbox"
               aria-expanded={dropdownOpen === 'year'}
-              style={{ minWidth: 80 }}
+              style={{ minWidth: 80, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
               {selectedYear}
               <svg className="ml-1 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

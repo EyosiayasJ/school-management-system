@@ -72,7 +72,7 @@ const ViewEventModal = ({ isOpen, onClose, event }) => {
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Branch</h4>
-                    <p className="mt-1 text-sm text-gray-900">{event.branch}</p>
+                    <p className="mt-1 text-sm text-gray-900">{typeof event.branch === 'object' ? event.branch?.name : event.branch}</p>
                   </div>
                 </div>
                 {event.description && (

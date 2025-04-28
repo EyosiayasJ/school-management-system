@@ -142,13 +142,17 @@ const EventsCalendar = () => {
 
   // Handle calendar slot selection (for adding new events)
   const handleSelectSlot = (slotInfo) => {
+    // slotInfo.start and slotInfo.end are Date objects
+    // If user clicks a single day, start and end are the same
+    const start = slotInfo.start;
+    const end = slotInfo.end || slotInfo.start;
     const newEvent = {
-      start: slotInfo.start,
-      end: slotInfo.end,
+      start,
+      end,
       title: '',
       location: '',
       type: 'meeting',
-      branch: branches[0]
+      branch: branches[0],
     };
     setSelectedEvent(newEvent);
     setShowAddModal(true);
@@ -286,21 +290,42 @@ const EventsCalendar = () => {
                     const colorClass = getEventTypeColor(event.resource?.type || event.type);
                     // Map Tailwind classes to hex codes
                     const colorMap = {
-                      'bg-purple-100': '#F3E8FF', 'text-purple-800': '#6D28D9',
-                      'bg-blue-100': '#DBEAFE', 'text-blue-800': '#1E40AF',
-                      'bg-green-100': '#D1FAE5', 'text-green-800': '#065F46',
-                      'bg-yellow-100': '#FEF9C3', 'text-yellow-800': '#92400E',
-                      'bg-indigo-100': '#E0E7FF', 'text-indigo-800': '#3730A3',
-                      'bg-pink-100': '#FCE7F3', 'text-pink-800': '#9D174D',
-                      'bg-orange-100': '#FFEDD5', 'text-orange-800': '#9A3412',
-                      'bg-red-100': '#FECACA', 'text-red-800': '#991B1B',
-                      'bg-gray-100': '#F3F4F6', 'text-gray-800': '#1F2937',
+                      'bg-purple-100': '#7C3AED', // Tailwind purple-600
+                      'text-purple-800': '#fff',
+                      'bg-blue-100': '#2563EB', // Tailwind blue-600
+                      'text-blue-800': '#fff',
+                      'bg-green-100': '#059669', // Tailwind green-600
+                      'text-green-800': '#fff',
+                      'bg-yellow-100': '#CA8A04', // Tailwind yellow-700
+                      'text-yellow-800': '#fff',
+                      'bg-indigo-100': '#4338CA', // Tailwind indigo-700
+                      'text-indigo-800': '#fff',
+                      'bg-pink-100': '#BE185D', // Tailwind pink-700
+                      'text-pink-800': '#fff',
+                      'bg-orange-100': '#EA580C', // Tailwind orange-600
+                      'text-orange-800': '#fff',
+                      'bg-red-100': '#DC2626', // Tailwind red-600
+                      'text-red-800': '#fff',
+                      'bg-gray-100': '#374151', // Tailwind gray-700
+                      'text-gray-800': '#fff',
                     };
                     const [bgClass, textClass] = colorClass.split(' ');
+                    // Use a darker border and colored shadow for contrast
+                    const borderColorMap = {
+                      'bg-purple-100': '#6D28D9', // Tailwind purple-800
+                      'bg-blue-100': '#1E40AF', // Tailwind blue-800
+                      'bg-green-100': '#065F46', // Tailwind green-800
+                      'bg-yellow-100': '#713F12', // Tailwind yellow-900
+                      'bg-indigo-100': '#312E81', // Tailwind indigo-900
+                      'bg-pink-100': '#831843', // Tailwind pink-900
+                      'bg-orange-100': '#7C2D12', // Tailwind orange-900
+                      'bg-red-100': '#7F1D1D', // Tailwind red-900
+                      'bg-gray-100': '#111827', // Tailwind gray-900
+                    };
                     return {
-                      backgroundColor: colorMap[bgClass] || '#DBEAFE',
-                      color: colorMap[textClass] || '#1E40AF',
-                      border: `1px solid ${colorMap[bgClass]?.replace('100', '400') || '#60A5FA'}`,
+                      backgroundColor: colorMap[bgClass] || '#60A5FA',
+                      color: '#fff',
+                      border: `2px solid ${borderColorMap[bgClass] || '#1D4ED8'}`,
                       borderRadius: '12px',
                       padding: '2px 8px',
                       margin: '1px 0',
@@ -308,12 +333,12 @@ const EventsCalendar = () => {
                       minWidth: '0',
                       maxWidth: '100%',
                       display: 'block',
-                      fontWeight: 600,
-                      fontSize: '0.92rem',
+                      fontWeight: 700,
+                      fontSize: '0.98rem',
                       letterSpacing: '0.01em',
                       whiteSpace: 'normal',
                       wordBreak: 'break-word',
-                      boxShadow: '0 1px 3px 0 rgba(59,130,246,0.07)',
+                      boxShadow: `0 4px 16px 0 ${borderColorMap[bgClass] || '#1D4ED8'}33`,
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                     };
@@ -375,7 +400,7 @@ const EventsCalendar = () => {
                               {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
                             </span>
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {event.branch}
+                              {typeof event.branch === 'object' ? event.branch?.name : event.branch}
                             </span>
                           </div>
                         </div>
