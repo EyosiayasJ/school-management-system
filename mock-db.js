@@ -72,6 +72,32 @@ export const teachers = [
   // …add more as needed
 ];
 
+export const recordTypes = [
+  { value: 'vaccination', label: 'Vaccination' },
+  { value: 'allergy', label: 'Allergy' },
+  { value: 'physical', label: 'Physical Exam' },
+  { value: 'medication', label: 'Medication' },
+  { value: 'incident', label: 'Incident' }
+];
+
+export const healthRecords = [
+  {
+    id: 1,
+    studentId: 1,
+    type: 'vaccination',
+    date: '2025-01-15',
+    notes: 'MMR vaccine, no adverse reaction'
+  },
+  {
+    id: 2,
+    studentId: 2,
+    type: 'allergy',
+    date: '2025-02-10',
+    notes: 'Peanut allergy, carries epipen'
+  }
+  // ... add more as needed
+];
+
 export const events = [
   { id: 1, title: 'End of Year Ceremony', start: '2025-06-15T10:00', end: '2025-06-15T12:00', location: 'Main Auditorium', type: 'ceremony', branch: 'Main Campus' },
   { id: 2, title: 'Parent-Teacher Meeting', start: '2025-06-20T14:00', end: '2025-06-20T16:00', location: 'Conference Room', type: 'meeting', branch: 'Downtown Branch' },

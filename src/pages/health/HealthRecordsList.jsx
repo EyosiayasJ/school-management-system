@@ -1,10 +1,59 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+import { healthRecords as mockRecords } from '../../../mock-db';
+
+// Components
+import AddHealthRecordModal from '../../components/health/AddHealthRecordModal';
+import EditHealthRecordModal from '../../components/health/EditHealthRecordModal';
+import ViewHealthRecordModal from '../../components/health/ViewHealthRecordModal';
 
 const HealthRecordsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [editRecord, setEditRecord] = useState(null);
+  const [records, setRecords] = useState([]);
+
+  // Load records from localStorage on mount
+  useEffect(() => {
+    const savedRecords = localStorage.getItem('healthRecords');
+    if (savedRecords) {
+      setRecords(JSON.parse(savedRecords));
+    } else {
+      setRecords([...mockRecords]);
+      localStorage.setItem('healthRecords', JSON.stringify(mockRecords));
+    }
+  }, []);
+
+  // Save records to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('healthRecords', JSON.stringify(records));
+  }, [records]);
+
+  // Event Handlers
+  const handleAddRecord = (newRecord) => {
+    setRecords(prev => [...prev, newRecord]);
+    toast.success(`Health record added for ${newRecord.studentName}`);
+    setIsAddModalOpen(false);
+  };
+
+  const handleUpdateRecord = (updatedRecord) => {
+    setRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+    toast.success(`Health record updated for ${updatedRecord.studentName}`);
+    setEditRecord(null);
+    setSelectedRecord(null);
+  };
+
+  const handleViewRecord = (record) => {
+    setSelectedRecord(record);
+  };
+
+  const handleEditRecord = (record) => {
+    setEditRecord(record);
+  };
+
   // Sample health records data
   const healthRecords = [
     { id: 1, studentName: 'John Smith', recordType: 'Vaccination', date: '2023-05-15', status: 'complete', branch: 'Main Campus', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
@@ -16,7 +65,7 @@ const HealthRecordsList = () => {
   ];
 
   // Filter health records based on search term and selected filter
-  const filteredRecords = healthRecords.filter(record => {
+  const filteredRecords = records.filter(record => {
     const matchesSearch = record.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.recordType.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.branch.toLowerCase().includes(searchTerm.toLowerCase());
@@ -86,7 +135,10 @@ const HealthRecordsList = () => {
             
             {/* Actions */}
             <div>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
                 <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -133,14 +185,22 @@ const HealthRecordsList = () => {
                           </p>
                         </div>
                         <div className="flex-shrink-0 flex space-x-2">
-                          <button className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <button 
+                            onClick={() => handleViewRecord(record)}
+                            className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            aria-label="View record details"
+                          >
                             <span className="sr-only">View</span>
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                           </button>
-                          <button className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <button 
+                            onClick={() => handleEditRecord(record)}
+                            className="p-1 rounded-full text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            aria-label="Edit record"
+                          >
                             <span className="sr-only">Edit</span>
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -178,6 +238,32 @@ const HealthRecordsList = () => {
           </nav>
         </div>
       </div>
+
+      {/* Modals */}
+      {isAddModalOpen && (
+        <AddHealthRecordModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddRecord}
+        />
+      )}
+
+      {editRecord && (
+        <EditHealthRecordModal
+          isOpen={!!editRecord}
+          onClose={() => setEditRecord(null)}
+          onSubmit={handleUpdateRecord}
+          record={editRecord}
+        />
+      )}
+
+      {selectedRecord && (
+        <ViewHealthRecordModal
+          isOpen={!!selectedRecord}
+          onClose={() => setSelectedRecord(null)}
+          record={selectedRecord}
+        />
+      )}
     </div>
   );
 };

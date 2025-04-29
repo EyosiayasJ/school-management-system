@@ -1,42 +1,93 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+
+// Import API service
+import { getResources } from '../../api/library';
+
+// Import components
+import AddResourceModal from '../../components/library/AddResourceModal';
+import ResourceDetailModal from '../../components/library/ResourceDetailModal';
+import ResourceCard from '../../components/library/ResourceCard';
 
 const ELibrary = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [resources, setResources] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   
-  // Sample library resources data
-  const resources = [
-    { id: 1, title: 'Advanced Mathematics', author: 'Dr. Robert Anderson', category: 'Textbook', format: 'PDF', thumbnail: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-    { id: 2, title: 'Introduction to Biology', author: 'Prof. Elizabeth Taylor', category: 'Textbook', format: 'EPUB', thumbnail: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-    { id: 3, title: 'World History: Modern Era', author: 'James Wilson', category: 'Reference', format: 'PDF', thumbnail: 'https://images.unsplash.com/photo-1562673005-7693bd6d6e54?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-    { id: 4, title: 'English Literature Classics', author: 'Patricia Moore', category: 'Fiction', format: 'EPUB', thumbnail: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-    { id: 5, title: 'Computer Science Fundamentals', author: 'Dr. Michael Brown', category: 'Textbook', format: 'PDF', thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-    { id: 6, title: 'Art Through the Ages', author: 'Jennifer Garcia', category: 'Reference', format: 'PDF', thumbnail: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-    { id: 7, title: 'Chemistry Lab Manual', author: 'Thomas Wilson', category: 'Textbook', format: 'PDF', thumbnail: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-    { id: 8, title: 'Physics for Beginners', author: 'Sarah Johnson', category: 'Textbook', format: 'EPUB', thumbnail: 'https://images.unsplash.com/photo-1535905557558-afc4877a26fc?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
-  ];
+  // Load resources using API service
+  useEffect(() => {
+    const loadResources = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getResources();
+        setResources(data);
+      } catch (error) {
+        console.error('Error loading resources:', error);
+        toast.error('Failed to load library resources');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadResources();
+  }, []);
 
-  // Filter resources based on search term and selected category
-  const filteredResources = resources.filter(resource => {
-    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.category.toLowerCase().includes(searchTerm.toLowerCase());
+  // Debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+  
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
     
-    const matchesCategory = selectedCategory === 'all' || resource.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
+    return () => clearTimeout(timerId);
+  }, [searchTerm]);
+  
+  // Memoized filtered resources
+  const filteredResources = useMemo(() => {
+    return resources.filter(resource => {
+      const matchesSearch = 
+        resource.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        resource.author.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        resource.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'all' || resource.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [resources, debouncedSearchTerm, selectedCategory]);
 
   // Get unique categories for filter dropdown
-  const categories = ['all', ...new Set(resources.map(resource => resource.category))];
+  const categories = useMemo(() => {
+    return ['all', ...new Set(resources.map(resource => resource.category))];
+  }, [resources]);
+  
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredResources.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
+  
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      // Scroll to top of resource grid
+      window.scrollTo({ top: 400, behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-semibold text-gray-900">E-Library</h1>
         <p className="mt-1 text-sm text-gray-500">Access digital books, resources, and learning materials</p>
-      </div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-6">
         {/* Actions Bar */}
@@ -87,8 +138,12 @@ const ELibrary = () => {
             
             {/* Actions */}
             <div>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <button 
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                aria-label="Add new resource"
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Add Resource
@@ -98,53 +153,35 @@ const ELibrary = () => {
         </div>
         
         {/* Resources Grid */}
-        {filteredResources.length > 0 ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredResources.map((resource, index) => (
-              <motion.div 
+            {[...Array(8)].map((_, index) => (
+              <div key={index} className="bg-white overflow-hidden shadow rounded-lg animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <div className="p-4">
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+                  <div className="flex justify-between">
+                    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredResources.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {currentItems.map((resource, index) => (
+              <ResourceCard 
                 key={resource.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="bg-white overflow-hidden shadow rounded-lg flex flex-col"
-              >
-                <div className="h-48 overflow-hidden">
-                  <img 
-                    src={resource.thumbnail} 
-                    alt={resource.title} 
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  />
-                </div>
-                <div className="p-4 flex-1 flex flex-col">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-blue-600 truncate">{resource.title}</h3>
-                    <p className="mt-1 text-sm text-gray-500">By {resource.author}</p>
-                    <div className="mt-2 flex items-center">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {resource.category}
-                      </span>
-                      <span className="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {resource.format}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex justify-between items-center">
-                    <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                      <svg className="-ml-0.5 mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      View
-                    </button>
-                    <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                      <svg className="-ml-0.5 mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      Download
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
+                resource={resource}
+                index={index}
+                onView={(resource) => {
+                  setSelectedResource(resource);
+                  setIsDetailModalOpen(true);
+                }}
+              />
             ))}
           </div>
         ) : (
@@ -155,26 +192,74 @@ const ELibrary = () => {
         
         {/* Pagination */}
         {filteredResources.length > 0 && (
-          <nav className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 mt-6 rounded-lg shadow">
+          <nav className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 mt-6 rounded-lg shadow" aria-label="Pagination">
             <div className="hidden sm:block">
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredResources.length}</span> of{' '}
-                <span className="font-medium">{resources.length}</span> resources
+                Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
+                <span className="font-medium">
+                  {Math.min(indexOfLastItem, filteredResources.length)}
+                </span>{' '}
+                of <span className="font-medium">{filteredResources.length}</span> resources
               </p>
             </div>
             <div className="flex-1 flex justify-between sm:justify-end">
-              <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" 
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+              >
                 Previous
               </button>
-              <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <div className="hidden md:flex mx-2 items-center">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handlePageChange(i + 1)}
+                    className={`mx-1 px-3 py-1 rounded-md ${currentPage === i + 1 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-700 hover:bg-gray-50'}`}
+                    aria-label={`Page ${i + 1}`}
+                    aria-current={currentPage === i + 1 ? 'page' : undefined}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" 
+                disabled={currentPage === totalPages || totalPages === 0}
+                aria-label="Next page"
+              >
                 Next
               </button>
             </div>
           </nav>
         )}
       </div>
+      
+      {/* Add Resource Modal */}
+      <AddResourceModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onResourceAdded={(newResource) => {
+          setResources(prev => [...prev, newResource]);
+          // Reset to first page if we're not already there
+          if (currentPage !== 1) setCurrentPage(1);
+        }}
+      />
+      
+      {/* Resource Detail Modal */}
+      <ResourceDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        resource={selectedResource}
+      />
+    </div>
     </div>
   );
 };
+
 
 export default ELibrary;
