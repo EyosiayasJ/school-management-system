@@ -1,49 +1,107 @@
-# school-management-system
+# School Management System - Teacher Portal
 
-## Dashboard Implementation Overview
+A comprehensive school management frontend application with a focus on the Teacher Portal.
 
-### Features
-- **Quick Links:** Add Student/Teacher modals, Event/Report placeholders, keyboard accessible, ARIA labels.
-- **Branch Performance Chart:** Uses `recharts` (install with `npm install recharts`) for visualizing branch stats.
-- **Accessibility:** All interactive elements have ARIA labels, tab order, and visible focus states.
-- **Error Handling:** Error UI for failed dashboard data loads.
-- **Testing:** Example unit test in `src/pages/Dashboard.test.jsx` (uses React Testing Library).
+## 🎓 Overview
 
-### Usage
-- To use the chart, ensure you have `recharts` installed:
-  ```bash
-  npm install recharts
-  ```
-- Quick Links open modals or placeholders. Modals update stats and activities in real time.
+This application provides a modern, efficient interface for educational institutions to manage their operations. The Teacher Portal is a dedicated section that allows teachers to communicate with students and parents, manage resources, track grades, take attendance, and handle their profile information.
 
-### Extending
-- Replace mock data in `src/mock/db.js` with real API calls as needed.
-- Add real event/report modals or navigation in `Dashboard.jsx`.
+## 🚀 Features
 
-### Accessibility & UX
-- All buttons and quick links are keyboard accessible (tab/enter/space).
-- Focus states are visible for accessibility.
+### Teacher Portal Features
+- **Dashboard**: Overview of classes, upcoming events, and important metrics
+- **Class Management**: View and manage assigned classes with detailed student information
+- **Attendance Tracking**: Record and monitor student attendance with reporting tools
+- **Assignment Management**: Create, distribute, and grade assignments with student submission tracking
+- **Grading System**: Comprehensive grade management with performance analytics
+- **Messaging System**: Communicate with students, parents, and staff through threaded conversations
+- **Resources Library**: Upload and share teaching materials with organization tools
+- **Profile Management**: Update personal information, credentials, and account settings
+- **Notification System**: Real-time notifications for important events and messages
 
-### Error Handling
-- To simulate an error, uncomment the `setError` line in `Dashboard.jsx`.
+## 💻 Tech Stack
 
-### Testing
-- Run tests with:
-  ```bash
-  npm test
-  ```
-- Example test covers dashboard title and Add Student modal opening.
+- **Frontend Framework**: React.js
+- **Routing**: React Router for navigation
+- **Styling**: Tailwind CSS for utility-first styling
+- **State Management**: Context API and custom hooks
+- **Data Fetching**: Axios and React Query
+- **UI Components**: Custom components with Headless UI and Material UI
+- **Charts and Visualization**: Recharts for data visualization
+- **Notifications**: React Hot Toast for toast notifications
+- **Icons**: Heroicons and React Icons
+- **Date Handling**: date-fns for date manipulation
+- **Animation**: Framer Motion for smooth transitions
 
----
-# React + Vite
+## 🏗️ Project Structure
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+```
+src/
+├── components/            # Reusable components
+│   ├── common/            # Shared UI components
+│   ├── layout/            # Layout components
+│   └── teacher/           # Teacher-specific components
+│       └── tabs/          # Tab components for teacher pages
+├── contexts/              # React Contexts
+├── hooks/                 # Custom React hooks
+├── pages/                 # Page components
+│   ├── auth/              # Authentication pages
+│   ├── dashboard/         # Dashboard pages
+│   └── teacher/           # Teacher portal pages
+├── services/              # API services
+│   └── messagesApi.js     # API services for messaging functionality
+├── config/                # Application configuration
+└── utils/                 # Utility functions
+```
 
-Currently, two official plugins are available:
+## 🔧 Installation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Clone the repository:
+```bash
+git clone https://github.com/your-username/school-management-frontend.git
+cd school-management-frontend
+```
 
-## Expanding the ESLint configuration
+2. Install dependencies:
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open your browser to the local development URL (usually http://localhost:5173)
+
+## 🔑 Login Credentials
+
+For testing the Teacher Portal, use the following credentials:
+- **Email**: teacher@school.com
+- **Password**: (any password will work for testing)
+
+Other test accounts:
+- Director: director@school.com (any password)
+- HQ: hq@school.com (any password)
+
+## 📝 Documentation
+
+Each folder contains a README.md file explaining its purpose and contents. The code is documented with clear, concise comments explaining the functionality.
+
+Key documentation files:
+- `src/components/README.md` - Overview of component organization
+- `src/pages/README.md` - Page structure and routing information
+- `src/services/README.md` - API service documentation
+- `src/hooks/README.md` - Custom hooks documentation
+
+## 🧪 Testing
+
+This project includes mock data for development and testing purposes. In a real environment, the application would connect to backend APIs.
+
+## 👨‍💻 Why did the JavaScript developer go broke?
+
+Because he lost his cache! 💾
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

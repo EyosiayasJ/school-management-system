@@ -1,3 +1,16 @@
+/**
+ * Mock Database for Development
+ * 
+ * This module provides mock data for various entities in the school management system
+ * to facilitate development and testing without requiring a backend connection.
+ * 
+ * The data is structured to mimic the real database schemas and includes realistic
+ * sample data for health records, branches, record types, and other entities
+ * needed throughout the application.
+ * 
+ * @module mock-db
+ */
+
 // Mock data for the School Management System
 
 // Health Records
