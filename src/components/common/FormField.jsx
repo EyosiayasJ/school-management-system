@@ -114,14 +114,15 @@ const FormField = ({
             aria-invalid={!!error}
             aria-describedby={error ? `${fieldId}-error` : undefined}
           >
-            {!required && !multiple && (
+            {!required && !multiple && !children && (
               <option value="">{placeholder || 'Select an option'}</option>
             )}
-            {options.map((option) => (
+            {options.length > 0 && options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
+            {children}
           </select>
         );
 

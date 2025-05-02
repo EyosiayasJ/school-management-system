@@ -13,3 +13,4 @@ export { default as GlobalSettings } from './GlobalSettings';
 export { default as SchoolDetail } from './SchoolDetail';
 export { default as Schools } from './Schools';
 export { default as Users } from './Users';
+export { default as TermsPage } from './TermsPage';

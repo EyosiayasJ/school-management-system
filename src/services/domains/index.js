@@ -14,3 +14,6 @@ export * as teacherService from './teacher';
 export * as eventService from './event';
 export * as healthService from './health';
 export * as libraryService from './library';
+export * as termApi from './term';
+export * as gradeApi from './grade';
+export * as behaviorApi from './behavior';

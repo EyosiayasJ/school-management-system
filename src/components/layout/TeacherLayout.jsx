@@ -108,6 +108,7 @@ const TeacherLayout = () => {
   const navigation = [
     { name: 'Dashboard', path: '/teacher', icon: 'home' },
     { name: 'My Classes', path: '/teacher/classes', icon: 'book' },
+    { name: 'Homeroom', path: '/teacher/homeroom', icon: 'trophy' },
     { name: 'Attendance', path: '/teacher/attendance', icon: 'calendar' },
     { name: 'Assignments', path: '/teacher/assignments', icon: 'clipboard' },
     { name: 'Grades', path: '/teacher/grades', icon: 'star' },

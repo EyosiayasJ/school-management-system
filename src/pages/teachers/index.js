@@ -18,3 +18,4 @@ export { default as Grades } from './Grades';
 export { default as Resources } from './Resources';
 export { default as Messages } from './Messages';
 export { default as Profile } from './Profile';
+export { default as HomeroomDashboard } from './HomeroomDashboard';

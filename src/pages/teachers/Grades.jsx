@@ -11,24 +11,41 @@ const MOCK_CLASSES = [
   { id: 'cls-005', name: 'Advanced Algebra', section: 'B', grade: '12th Grade' }
 ];
 
+// Student photo mock data
+const STUDENT_PHOTOS = {
+  'std-001': 'https://randomuser.me/api/portraits/women/44.jpg',
+  'std-002': 'https://randomuser.me/api/portraits/men/32.jpg',
+  'std-003': 'https://randomuser.me/api/portraits/women/68.jpg',
+  'std-004': 'https://randomuser.me/api/portraits/men/75.jpg',
+  'std-005': 'https://randomuser.me/api/portraits/women/89.jpg',
+  'std-006': 'https://randomuser.me/api/portraits/men/55.jpg',
+  'std-007': 'https://randomuser.me/api/portraits/women/33.jpg',
+  'std-008': 'https://randomuser.me/api/portraits/men/26.jpg',
+  'std-009': 'https://randomuser.me/api/portraits/women/74.jpg',
+  'std-010': 'https://randomuser.me/api/portraits/men/41.jpg',
+  'std-011': 'https://randomuser.me/api/portraits/women/52.jpg',
+  'std-012': 'https://randomuser.me/api/portraits/men/63.jpg',
+  'std-013': 'https://randomuser.me/api/portraits/women/27.jpg'
+};
+
 const MOCK_STUDENTS = {
   'cls-001': [
-    { id: 'std-001', name: 'Emma Thompson', roll_number: '2023-A101' },
+    { id: 'std-001', name: 'Emma Thompson', roll_number: '2023-A101', comment: 'Excellent student. Participated actively in class discussions.' },
     { id: 'std-002', name: 'James Wilson', roll_number: '2023-A102' },
     { id: 'std-003', name: 'Sophia Martinez', roll_number: '2023-A103' },
     { id: 'std-004', name: 'Ethan Johnson', roll_number: '2023-A104' },
-    { id: 'std-005', name: 'Olivia Brown', roll_number: '2023-A105' }
+    { id: 'std-005', name: 'Olivia Brown', roll_number: '2023-A105', comment: 'Needs additional support in problem-solving.' }
   ],
   'cls-002': [
     { id: 'std-006', name: 'Noah Davis', roll_number: '2023-B101' },
-    { id: 'std-007', name: 'Ava Miller', roll_number: '2023-B102' },
+    { id: 'std-007', name: 'Ava Miller', roll_number: '2023-B102', comment: 'Very creative thinker. Consider for advanced projects.' },
     { id: 'std-008', name: 'Liam Garcia', roll_number: '2023-B103' },
     { id: 'std-009', name: 'Isabella Rodriguez', roll_number: '2023-B104' }
   ],
   'cls-003': [
     { id: 'std-010', name: 'Lucas Smith', roll_number: '2023-C101' },
     { id: 'std-011', name: 'Mia Johnson', roll_number: '2023-C102' },
-    { id: 'std-012', name: 'Mason Brown', roll_number: '2023-C103' },
+    { id: 'std-012', name: 'Mason Brown', roll_number: '2023-C103', comment: 'Excellent programming skills. Consider for computer science competition.' },
     { id: 'std-013', name: 'Charlotte Jones', roll_number: '2023-C104' }
   ]
 };
@@ -72,7 +89,8 @@ const generateMockGrades = (classId) => {
         score,
         outOf: assignment.totalPoints,
         submitted: true,
-        feedback: ''
+        feedback: '',
+        comment: ''
       };
     });
   });
@@ -99,6 +117,12 @@ const Grades = () => {
   const [editingCell, setEditingCell] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [selectedGrade, setSelectedGrade] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [studentCommentModalOpen, setStudentCommentModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentCommentText, setStudentCommentText] = useState('');
   
   // Fetch teacher's classes
   useEffect(() => {
@@ -189,7 +213,23 @@ const Grades = () => {
   };
   
   // Handle clicking on a grade cell to edit
-  const handleCellClick = (studentId, assignmentId) => {
+  const handleCellClick = (studentId, assignmentId, e) => {
+    // If already editing a different cell, save the current edit first
+    if (editingCell && (editingCell.studentId !== studentId || editingCell.assignmentId !== assignmentId)) {
+      handleGradeSave();
+    }
+    
+    // If right-click, show comment modal instead of grade editing
+    if (e && e.type === 'contextmenu') {
+      e.preventDefault();
+      const grade = grades[studentId][assignmentId];
+      setSelectedGrade({ studentId, assignmentId });
+      setCommentText(grade.comment || '');
+      setCommentModalOpen(true);
+      return;
+    }
+    
+    // Regular click - edit grade
     if (grades[studentId] && grades[studentId][assignmentId]) {
       setEditingCell({ studentId, assignmentId });
       setEditValue(grades[studentId][assignmentId].score.toString());
@@ -242,6 +282,7 @@ const Grades = () => {
     if (e.key === 'Enter') {
       handleGradeSave();
     } else if (e.key === 'Escape') {
+      // Cancel editing and reset to original value
       setEditingCell(null);
       setEditValue('');
     }
@@ -307,6 +348,77 @@ const Grades = () => {
   const getClassName = (classId) => {
     const cls = classes.find(c => c.id === classId);
     return cls ? `${cls.name} - ${cls.grade} - Section ${cls.section}` : '';
+  };
+  
+  // Save comment to grade
+  const handleCommentSave = () => {
+    if (!selectedGrade) return;
+    
+    const { studentId, assignmentId } = selectedGrade;
+    
+    setIsSaving(true);
+    
+    // In a real app, we would send this to the API
+    setTimeout(() => {
+      setGrades(prevGrades => ({
+        ...prevGrades,
+        [studentId]: {
+          ...prevGrades[studentId],
+          [assignmentId]: {
+            ...prevGrades[studentId][assignmentId],
+            comment: commentText
+          }
+        }
+      }));
+      
+      setCommentModalOpen(false);
+      setSelectedGrade(null);
+      setCommentText('');
+      setIsSaving(false);
+    }, 300);
+  };
+  
+  // Handle comment modal close
+  const handleCommentModalClose = () => {
+    setCommentModalOpen(false);
+    setSelectedGrade(null);
+    setCommentText('');
+  };
+  
+  // Handle opening the student comment modal
+  const handleStudentCommentClick = (student) => {
+    setSelectedStudent(student);
+    // Initialize with existing comment if any
+    setStudentCommentText(student.comment || '');
+    setStudentCommentModalOpen(true);
+  };
+  
+  // Handle saving the student comment
+  const handleStudentCommentSave = () => {
+    if (!selectedStudent) return;
+    
+    setIsSaving(true);
+    
+    // In a real app, we would send this to the API
+    setTimeout(() => {
+      // Update student comment in the local state
+      const updatedStudents = students.map(s => 
+        s.id === selectedStudent.id ? { ...s, comment: studentCommentText } : s
+      );
+      
+      setStudents(updatedStudents);
+      setStudentCommentModalOpen(false);
+      setSelectedStudent(null);
+      setStudentCommentText('');
+      setIsSaving(false);
+    }, 300);
+  };
+  
+  // Handle student comment modal close
+  const handleStudentCommentModalClose = () => {
+    setStudentCommentModalOpen(false);
+    setSelectedStudent(null);
+    setStudentCommentText('');
   };
   
   return (
@@ -419,26 +531,49 @@ const Grades = () => {
                       <td className="sticky left-0 bg-white border-r px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
-                              {getInitials(student.name)}
-                            </div>
+                            {STUDENT_PHOTOS[student.id] ? (
+                              <img 
+                                src={STUDENT_PHOTOS[student.id]} 
+                                alt={student.name}
+                                className="h-10 w-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
+                                {getInitials(student.name)}
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{student.name}</div>
                             <div className="text-sm text-gray-500">{student.roll_number}</div>
                           </div>
+                          <button
+                            onClick={() => handleStudentCommentClick(student)}
+                            className="ml-2 p-1 text-gray-400 hover:text-blue-500 focus:outline-none relative"
+                            title="Add comment about this student"
+                          >
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            {student.comment && (
+                              <span className="absolute -top-1 -right-1 h-2 w-2 bg-blue-600 rounded-full"></span>
+                            )}
+                          </button>
                         </div>
                       </td>
                       
                       {assignments.map(assignment => {
                         const grade = grades[student.id]?.[assignment.id];
                         const isEditing = editingCell?.studentId === student.id && editingCell?.assignmentId === assignment.id;
+                        const hasComment = grade?.comment && grade.comment.trim().length > 0;
                         
                         return (
                           <td 
                             key={assignment.id} 
                             className={`px-6 py-4 whitespace-nowrap text-center ${getCellColor(grade?.score, assignment.totalPoints)}`}
-                            onClick={() => !isEditing && handleCellClick(student.id, assignment.id)}
+                            onClick={(e) => !isEditing && handleCellClick(student.id, assignment.id, e)}
+                            onContextMenu={(e) => handleCellClick(student.id, assignment.id, e)}
+                            title={hasComment ? "Right-click to edit comment" : "Right-click to add comment"}
                           >
                             {isEditing ? (
                               <div className="flex items-center justify-center">
@@ -446,18 +581,44 @@ const Grades = () => {
                                   type="text"
                                   value={editValue}
                                   onChange={handleGradeChange}
-                                  onBlur={handleGradeSave}
                                   onKeyDown={handleKeyDown}
                                   className="w-16 text-center border rounded px-2 py-1"
                                   autoFocus
                                 />
-                                {isSaving && (
+                                {isSaving ? (
                                   <div className="ml-2 animate-spin h-4 w-4 border-t-2 border-blue-500 rounded-full"></div>
+                                ) : (
+                                  <div className="flex">
+                                    <button
+                                      onClick={handleGradeSave}
+                                      className="ml-1 p-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none transition-colors"
+                                      title="Save grade"
+                                    >
+                                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingCell(null);
+                                        setEditValue('');
+                                      }}
+                                      className="ml-1 p-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none transition-colors"
+                                      title="Cancel editing"
+                                    >
+                                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             ) : (
-                              <div className="text-sm cursor-pointer">
+                              <div className="text-sm cursor-pointer relative">
                                 {grade?.score !== undefined ? `${grade.score}/${grade.outOf}` : 'N/A'}
+                                {hasComment && (
+                                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-blue-600 rounded-full" title={grade.comment}></span>
+                                )}
                               </div>
                             )}
                           </td>
@@ -506,6 +667,112 @@ const Grades = () => {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+      )}
+
+      {/* Grade comment modal */}
+      {commentModalOpen && selectedGrade && (
+        <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Add Comment
+              </h3>
+              <button 
+                className="text-gray-400 hover:text-gray-500" 
+                onClick={handleCommentModalClose}
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-1">
+                Comment for {students.find(s => s.id === selectedGrade.studentId)?.name || 'Student'}
+              </label>
+              <textarea
+                id="comment"
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Add your feedback here..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={handleCommentModalClose}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={handleCommentSave}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save Comment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student comment modal */}
+      {studentCommentModalOpen && selectedStudent && (
+        <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Student Notes
+              </h3>
+              <button 
+                className="text-gray-400 hover:text-gray-500" 
+                onClick={handleStudentCommentModalClose}
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="studentComment" className="block text-sm font-medium text-gray-700 mb-1">
+                Notes for {selectedStudent.name}
+              </label>
+              <textarea
+                id="studentComment"
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Add your notes about this student here..."
+                value={studentCommentText}
+                onChange={(e) => setStudentCommentText(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={handleStudentCommentModalClose}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={handleStudentCommentSave}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save Notes'}
+              </button>
+            </div>
           </div>
         </div>
       )}
