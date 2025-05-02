@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ActionBar from '../../components/common/ActionBar';
-import FormField from '../../components/common/FormField';
 
 // Mock data for development
 const MOCK_CLASSES = [
@@ -317,39 +316,6 @@ const Grades = () => {
         subtitle="Manage and track student grades"
       />
       
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
-            <FormField
-              label="Select Class"
-              name="class"
-              type="select"
-              value={selectedClass}
-              onChange={handleClassChange}
-              disabled={classLoading}
-            >
-              <option value="">Select a class</option>
-              {classes.map(cls => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name} - {cls.grade} - Section {cls.section}
-                </option>
-              ))}
-            </FormField>
-          </div>
-          
-          <div className="flex items-end">
-            {selectedClass && (
-              <button
-                onClick={handleViewClass}
-                className="w-full px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                View Class Details
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-      
       {selectedClass ? (
         loading ? (
           <div className="bg-white rounded-xl shadow-sm p-8 flex items-center justify-center">
@@ -371,11 +337,26 @@ const Grades = () => {
           <>
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900">{getClassName(selectedClass)}</h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {students.length} Students • {assignments.length} Assignments
-                  </p>
+                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3 md:mb-0">
+                  <select
+                    value={selectedClass}
+                    onChange={handleClassChange}
+                    disabled={classLoading}
+                    className="p-2 border border-blue-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  >
+                    <option value="">Select a class</option>
+                    {classes.map(cls => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.name} - {cls.grade} - Section {cls.section}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {selectedClass && (
+                    <h2 className="text-lg font-medium text-gray-900">
+                      {getClassName(selectedClass)} <span className="text-sm text-gray-500">({students.length} Students • {assignments.length} Assignments)</span>
+                    </h2>
+                  )}
                 </div>
                 
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
@@ -387,15 +368,24 @@ const Grades = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   
-                  <button
-                    onClick={exportToCSV}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                  >
-                    <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Export CSV
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleViewClass}
+                      className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      Class Details
+                    </button>
+                    
+                    <button
+                      onClick={exportToCSV}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                    >
+                      <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Export
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -497,10 +487,26 @@ const Grades = () => {
           <svg className="w-16 h-16 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No Class Selected</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Select a Class</h3>
           <p className="mt-2 text-sm text-gray-500">
-            Please select a class from the dropdown above to view and manage grades.
+            Choose a class from the dropdown below to view and manage grades.
           </p>
+          
+          <div className="mt-6 max-w-sm mx-auto">
+            <select
+              value={selectedClass}
+              onChange={handleClassChange}
+              disabled={classLoading}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select a class</option>
+              {classes.map(cls => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name} - {cls.grade} - Section {cls.section}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
     </div>
