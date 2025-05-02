@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { addResource } from '../../api/library';
+import { addResource } from '../../services/domains/library';
 
 const AddResourceModal = ({ isOpen, onClose, onResourceAdded }) => {
   const [formData, setFormData] = useState({

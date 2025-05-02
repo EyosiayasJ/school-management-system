@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { teachers as mockTeachers, branchesList } from '../../../mock-db';
+import { teachers as mockTeachers, branchesList } from '../../mock';
 
 // Components
-import AddTeacherModal from '../../components/teachers/AddTeacherModal';
-import EditTeacherModal from '../../components/teachers/EditTeacherModal';
-import TeacherProfile from '../../components/teachers/TeacherProfile';
+import AddTeacherModal from '../../components/teacher/AddTeacherModal';
+import EditTeacherModal from '../../components/teacher/EditTeacherModal';
+import TeacherProfile from '../../components/teacher/TeacherProfile';
 
 const TeachersList = () => {
   // State management

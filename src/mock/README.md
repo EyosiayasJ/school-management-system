@@ -38,7 +38,7 @@ In development mode, the application automatically uses mock data when:
 
 To use mock data:
 ```javascript
-import { getUsers } from '../mock/db';
+import { getUsers } from './db';
 
 // Use just like a real data source
 const users = getUsers();
@@ -51,6 +51,5 @@ Some data is dynamically generated at runtime using:
 - Realistic patterns for names, dates, etc.
 - Configurable volume of generated entities
 
-## 👨‍💻 Why did the mock database never get tired?
-
-Because it always had plenty of mock energy! ⚡ 
+ Why did the mock database never get tired?
+Because it always had plenty of mock energy! 

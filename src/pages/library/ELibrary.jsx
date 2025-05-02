@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 
 // Import API service
-import { getResources } from '../../api/library';
+import { getResources } from '../../services/domains/library';
 
 // Import components
 import AddResourceModal from '../../components/library/AddResourceModal';

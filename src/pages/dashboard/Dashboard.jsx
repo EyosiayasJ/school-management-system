@@ -9,7 +9,7 @@ import ActivityItem            from '../../components/dashboard/ActivityItem.jsx
 import QuickLinkButton         from '../../components/dashboard/QuickLinkButton.jsx';
 import BranchPerformanceChart  from '../../components/dashboard/BranchPerformanceChart.jsx';
 
-import { stats, activities, quickLinks } from '../../../mock-db.js';
+import { stats, activities, quickLinks } from '../../mock';
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);

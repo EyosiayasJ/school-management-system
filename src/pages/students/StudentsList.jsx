@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Avatar from '@mui/material/Avatar';
 import { toast } from 'react-hot-toast';
-import { students as mockStudents, branchesList } from '../../../mock-db';
+import { students as mockStudents, branchesList } from '../../mock';
 
 // Modals & Profile
 import AddStudentModal from '../../components/students/AddStudentModal';

@@ -7,7 +7,7 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
-import { events as mockEvents, branches } from '../../../mock-db.js';
+import { events as mockEvents, branches } from '../../mock';
 import { toast } from 'react-hot-toast';
 import AddEventModal from '../../components/events/AddEventModal';
 import EditEventModal from '../../components/events/EditEventModal';
@@ -63,10 +63,10 @@ const EventsCalendar = () => {
   // Filter events based on search term and selected filter
   const filteredEvents = allEvents.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (event.location ? event.location.toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
                          event.branch.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFilter = selectedFilter === 'all' || event.type === selectedFilter;
+    const matchesFilter = selectedFilter === 'all' || (event.type ? event.type === selectedFilter : true);
     
     return matchesSearch && matchesFilter;
   });

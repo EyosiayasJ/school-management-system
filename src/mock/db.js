@@ -1,104 +1,160 @@
-// src/mock/db.js
-// Centralized mock database for the application
+/**
+ * Mock Database for Development
+ * 
+ * This module provides centralized mock data for various entities in the school management system
+ * to facilitate development and testing without requiring a backend connection.
+ * 
+ * The data is structured to mimic the real database schemas and includes realistic
+ * sample data for students, teachers, branches, health records, events, and other entities
+ * needed throughout the application.
+ * 
+ * @module mock/db
+ */
 
 // Health Record Types
 export const recordTypes = [
-  { id: 1, name: 'Vaccination', description: 'Immunization and vaccination records' },
-  { id: 2, name: 'Annual Checkup', description: 'Yearly physical examination' },
-  { id: 3, name: 'Allergy Test', description: 'Allergy screening and test results' },
-  { id: 4, name: 'Vision Test', description: 'Eye examination and vision assessment' },
-  { id: 5, name: 'Dental Checkup', description: 'Dental examination and procedures' },
-  { id: 6, name: 'Hearing Test', description: 'Hearing screening and assessment' },
-  { id: 7, name: 'Medical Certificate', description: 'General medical certification' },
-  { id: 8, name: 'Emergency Contact', description: 'Emergency contact and medical information' }
+  { id: 1, value: 'vaccination', label: 'Vaccination', description: 'Immunization and vaccination records' },
+  { id: 2, value: 'allergy', label: 'Allergy', description: 'Allergy screening and test results' },
+  { id: 3, value: 'physical', label: 'Physical Exam', description: 'Yearly physical examination' },
+  { id: 4, value: 'medication', label: 'Medication', description: 'Prescribed medications' },
+  { id: 5, value: 'incident', label: 'Incident', description: 'Health incidents and accidents' },
+  { id: 6, value: 'vision', label: 'Vision Test', description: 'Eye examination and vision assessment' },
+  { id: 7, value: 'dental', label: 'Dental Checkup', description: 'Dental examination and procedures' },
+  { id: 8, value: 'hearing', label: 'Hearing Test', description: 'Hearing screening and assessment' }
 ];
 
 // Students data
 export const students = [
-  { 
-    id: 1, 
-    name: 'John Doe', 
-    grade: '10th', 
-    branch: 'Main Campus',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
-  { 
-    id: 2, 
-    name: 'Jane Smith', 
-    grade: '11th', 
-    branch: 'North Branch',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
-  { 
-    id: 3, 
-    name: 'Michael Johnson', 
-    grade: '9th', 
-    branch: 'South Branch',
-    status: 'suspended',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
-  { 
-    id: 4, 
-    name: 'Emily Davis', 
-    grade: '12th', 
-    branch: 'Main Campus',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
+  { id: 1, name: 'John Smith', grade: '10th', branch: 'Main Campus', status: 'active', gpa: 3.75, warnings: 0, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
+  { id: 2, name: 'Sarah Johnson', grade: '8th', branch: 'East Branch', status: 'active', gpa: 3.60, warnings: 1, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
+  { id: 3, name: 'Michael Brown', grade: '12th', branch: 'South Branch', status: 'inactive', gpa: 2.95, warnings: 2, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
+  { id: 4, name: 'Emily Davis', grade: '12th', branch: 'Main Campus', status: 'active', gpa: 3.90, warnings: 0, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80' },
+  { id: 5, name: 'William Taylor', grade: '9th', branch: 'West Branch', status: 'active', gpa: 3.45, warnings: 1, avatar: '' },
+  { id: 6, name: 'Emma Wilson', grade: '10th', branch: 'North Branch', status: 'active', gpa: 3.70, warnings: 0, avatar: '' },
+  { id: 7, name: 'James Davis', grade: '9th', branch: 'Main Campus', status: 'active', gpa: 3.80, warnings: 0, avatar: '' },
+  { id: 8, name: 'Sophia Johnson', grade: '7th', branch: 'East Branch', status: 'active', gpa: 3.55, warnings: 1, avatar: '' },
+  { id: 9, name: 'Benjamin Miller', grade: '11th', branch: 'West Branch', status: 'active', gpa: 3.65, warnings: 0, avatar: '' },
+  { id: 10, name: 'Isabella Garcia', grade: '8th', branch: 'North Branch', status: 'active', gpa: 3.50, warnings: 0, avatar: '' },
+  { id: 11, name: 'Ethan Anderson', grade: '10th', branch: 'Main Campus', status: 'active', gpa: 3.25, warnings: 1, avatar: '' },
+  { id: 12, name: 'Olivia Martinez', grade: '11th', branch: 'South Branch', status: 'inactive', gpa: 2.80, warnings: 2, avatar: '' }
 ];
 
 // Teachers data
 export const teachers = [
-  { 
-    id: 1, 
-    name: 'Dr. Robert Anderson', 
-    subject: 'Mathematics', 
-    branch: 'Main Campus',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
-  { 
-    id: 2, 
-    name: 'Prof. Elizabeth Taylor', 
-    subject: 'Biology', 
-    branch: 'North Branch',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
-  { 
-    id: 3, 
-    name: 'James Wilson', 
-    subject: 'History', 
-    branch: 'South Branch',
-    status: 'inactive',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
-  { 
-    id: 4, 
-    name: 'Patricia Moore', 
-    subject: 'English Literature', 
-    branch: 'Main Campus',
-    status: 'active',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80'
-  },
+  { id: 1, name: 'Dr. Robert Anderson', subject: 'Mathematics', branch: 'Main Campus', status: 'active', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80', warnings: 0, suspensionEnds: null },
+  { id: 2, name: 'Prof. Elizabeth Taylor', subject: 'Biology', branch: 'North Branch', status: 'active', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80', warnings: 0, suspensionEnds: null },
+  { id: 3, name: 'James Wilson', subject: 'History', branch: 'South Branch', status: 'inactive', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80', warnings: 1, suspensionEnds: null },
+  { id: 4, name: 'Patricia Moore', subject: 'English Literature', branch: 'Main Campus', status: 'active', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80', warnings: 0, suspensionEnds: null },
+  { id: 5, name: 'Dr. Michael Johnson', subject: 'Physics', branch: 'East Branch', status: 'active', avatar: '', warnings: 0, suspensionEnds: null },
+  { id: 6, name: 'Mr. James Wilson', subject: 'History', branch: 'Main Campus', status: 'inactive', avatar: '', warnings: 2, suspensionEnds: null }
 ];
 
 // Branches data
 export const branches = [
-  { id: 1, name: 'Main Campus', address: '123 Education St, City', students: 450, teachers: 35 },
-  { id: 2, name: 'North Branch', address: '456 Learning Ave, North City', students: 320, teachers: 28 },
-  { id: 3, name: 'South Branch', address: '789 Knowledge Blvd, South City', students: 280, teachers: 22 },
-  { id: 4, name: 'East Campus', address: '101 Wisdom Lane, East City', students: 210, teachers: 18 },
+  { id: 1, name: 'Main Campus', location: 'New York', status: 'active', established: 2010, students: 500, teachers: 30, address: '123 Education St, City' },
+  { id: 2, name: 'North Branch', location: 'Los Angeles', status: 'active', established: 2015, students: 400, teachers: 25, address: '456 Learning Ave, North City' },
+  { id: 3, name: 'South Branch', location: 'Chicago', status: 'inactive', established: 2018, students: 250, teachers: 15, address: '789 Knowledge Blvd, South City' },
+  { id: 4, name: 'East Branch', location: 'Houston', status: 'active', established: 2020, students: 300, teachers: 20, address: '101 Wisdom Lane, East City' },
+  { id: 5, name: 'West Branch', location: 'Phoenix', status: 'active', established: 2019, students: 275, teachers: 18, address: '202 Learning Blvd, West City' }
 ];
+
+// Branch names list for dropdowns
+export const branchesList = branches.map(b => b.name);
 
 // Events data
 export const events = [
-  { id: 1, title: 'Annual Sports Day', start: new Date(2023, 5, 15), end: new Date(2023, 5, 15), branch: 'Main Campus', allDay: true },
-  { id: 2, title: 'Parent-Teacher Meeting', start: new Date(2023, 5, 20), end: new Date(2023, 5, 20), branch: 'All Branches', allDay: true },
-  { id: 3, title: 'Science Exhibition', start: new Date(2023, 6, 5), end: new Date(2023, 6, 7), branch: 'North Branch', allDay: true },
-  { id: 4, title: 'Annual Day Celebration', start: new Date(2023, 7, 12), end: new Date(2023, 7, 12), branch: 'All Branches', allDay: true },
+  { id: 1, title: 'Annual Sports Day', start: new Date(2023, 5, 15), end: new Date(2023, 5, 15), branch: 'Main Campus', location: 'School Stadium', allDay: true, type: 'competition' },
+  { id: 2, title: 'Parent-Teacher Meeting', start: new Date(2023, 5, 20), end: new Date(2023, 5, 20), branch: 'All Branches', location: 'School Auditorium', allDay: true, type: 'meeting' },
+  { id: 3, title: 'Science Exhibition', start: new Date(2023, 6, 5), end: new Date(2023, 6, 7), branch: 'North Branch', location: 'Science Building', allDay: true, type: 'fair' },
+  { id: 4, title: 'Cultural Festival', start: new Date(2023, 7, 10), end: new Date(2023, 7, 12), branch: 'Main Campus', location: 'School Grounds', allDay: true, type: 'fair' }
+];
+
+// Health records data
+export const healthRecords = [
+  {
+    id: 1,
+    studentId: 1,
+    studentName: 'John Smith',
+    type: 'vaccination',
+    date: '2023-05-15',
+    notes: 'MMR vaccine, no adverse reaction',
+    status: 'complete',
+    branch: 'Main Campus',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+  },
+  {
+    id: 2,
+    studentId: 2,
+    studentName: 'Sarah Johnson',
+    type: 'allergy',
+    date: '2023-06-22',
+    notes: 'Peanut allergy, carries epipen',
+    status: 'pending',
+    branch: 'North Branch',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+  },
+  {
+    id: 3,
+    studentId: 3,
+    studentName: 'Michael Brown',
+    type: 'physical',
+    date: '2023-04-10',
+    notes: 'Annual physical completed, all normal',
+    status: 'complete',
+    branch: 'Main Campus',
+    avatar: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+  },
+  {
+    id: 4,
+    studentId: 4,
+    studentName: 'Emily Davis',
+    type: 'vision',
+    date: '2023-07-05',
+    notes: 'Vision test, prescribed glasses',
+    status: 'pending',
+    branch: 'East Branch',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+  }
+];
+
+// Dashboard stats
+export const stats = [
+  { name: 'Total Students', value: '2,543', change: '+12%', iconColor: 'text-blue-500' },
+  { name: 'Total Teachers', value: '157', change: '+4%', iconColor: 'text-emerald-500' },
+  { name: 'Total Branches', value: '12', change: '+2', iconColor: 'text-violet-500' },
+  { name: 'Upcoming Events', value: '8', change: 'This week', iconColor: 'text-amber-500' }
+];
+
+// Dashboard activities
+export const activities = [
+  { id: 1, user: 'John Smith', action: 'added a new student', time: '2 hours ago' },
+  { id: 2, user: 'Sarah Johnson', action: 'updated health records', time: '4 hours ago' },
+  { id: 3, user: 'Michael Brown', action: 'added 5 new books', time: 'Yesterday' },
+  { id: 4, user: 'Emily Davis', action: 'scheduled a new event', time: '2 days ago' },
+  { id: 5, user: 'John Smith', action: 'added a new student', time: '2 hours ago' },
+  { id: 6, user: 'Sarah Johnson', action: 'updated health records', time: '4 hours ago' },
+  { id: 7, user: 'Michael Brown', action: 'added 5 new books', time: 'Yesterday' },
+  { id: 8, user: 'Emily Davis', action: 'scheduled a new event', time: '2 days ago' },
+  { id: 9, user: 'John Smith', action: 'added a new student', time: '2 hours ago' },
+  { id: 10, user: 'Sarah Johnson', action: 'updated health records', time: '4 hours ago' },
+  { id: 11, user: 'Michael Brown', action: 'added 5 new books', time: 'Yesterday' },
+  { id: 12, user: 'Emily Davis', action: 'scheduled a new event', time: '2 days ago' }
+];
+
+// Dashboard quick links
+export const quickLinks = [
+  { label: 'Add Student', iconColor: 'text-blue-600' },
+  { label: 'Add Teacher', iconColor: 'text-green-600' },
+  { label: 'Add Event', iconColor: 'text-amber-600' },
+  { label: 'Generate Report', iconColor: 'text-violet-600' }
+];
+
+// Library Books
+export const books = [
+  { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', category: 'Fiction', available: true, branch: 'Main Campus' },
+  { id: 2, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', category: 'Fiction', available: false, branch: 'North Branch' },
+  { id: 3, title: 'A Brief History of Time', author: 'Stephen Hawking', category: 'Science', available: true, branch: 'Main Campus' },
+  { id: 4, title: 'The Elements of Style', author: 'William Strunk Jr.', category: 'Reference', available: true, branch: 'South Branch' }
 ];
 
 // E-Library resources data
@@ -225,34 +281,18 @@ export const resources = [
   }
 ];
 
-// Health records data
-export const healthRecords = [
-  { id: 1, studentId: 1, condition: 'Asthma', severity: 'Mild', notes: 'Requires inhaler during physical activities', lastUpdated: '2023-04-15' },
-  { id: 2, studentId: 3, condition: 'Allergies', severity: 'Moderate', notes: 'Allergic to peanuts and shellfish', lastUpdated: '2023-03-22' },
-  { id: 3, studentId: 2, condition: 'ADHD', severity: 'Moderate', notes: 'On prescribed medication', lastUpdated: '2023-05-10' },
-  { id: 4, studentId: 4, condition: 'None', severity: 'N/A', notes: 'No known health issues', lastUpdated: '2023-02-18' },
-];
-
-// Dashboard stats
-export const stats = [
-  { title: 'Total Students', value: 1260, icon: 'school', color: 'blue' },
-  { title: 'Total Teachers', value: 103, icon: 'person', color: 'green' },
-  { title: 'Branches', value: 4, icon: 'apartment', color: 'purple' },
-  { title: 'Events This Month', value: 8, icon: 'event', color: 'orange' },
-];
-
-// Dashboard activities
-export const activities = [
-  { id: 1, user: 'Admin', action: 'added a new student', target: 'Emily Parker', time: '2 hours ago', icon: 'person_add' },
-  { id: 2, user: 'System', action: 'generated monthly report', target: 'May 2023', time: '5 hours ago', icon: 'description' },
-  { id: 3, user: 'Admin', action: 'updated branch details', target: 'North Branch', time: '1 day ago', icon: 'edit' },
-  { id: 4, user: 'Admin', action: 'scheduled new event', target: 'Science Exhibition', time: '2 days ago', icon: 'event' },
-];
-
-// Dashboard quick links
-export const quickLinks = [
-  { label: 'Add Student', icon: 'person_add', color: 'bg-blue-500' },
-  { label: 'Add Teacher', icon: 'person', color: 'bg-green-500' },
-  { label: 'Add Event', icon: 'event', color: 'bg-purple-500' },
-  { label: 'Generate Report', icon: 'assessment', color: 'bg-orange-500' },
-];
+// Export everything as a default object as well for convenience
+export default {
+  stats,
+  activities,
+  quickLinks,
+  branches,
+  branchesList,
+  students,
+  teachers,
+  recordTypes,
+  healthRecords,
+  events,
+  books,
+  resources
+};

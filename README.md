@@ -1,107 +1,85 @@
-# School Management System - Teacher Portal
+# School Management System
 
-A comprehensive school management frontend application with a focus on the Teacher Portal.
+A comprehensive school management system for educational institutions with a multi-role structure including Super Admin, Support Admin, Teachers, School Staff, and Student/Parent portals.
 
-## 🎓 Overview
+## 📋 Features
 
-This application provides a modern, efficient interface for educational institutions to manage their operations. The Teacher Portal is a dedicated section that allows teachers to communicate with students and parents, manage resources, track grades, take attendance, and handle their profile information.
+- **Role-Based Access Control**: Different interfaces and permissions for each user type
+- **Super Admin Portal**: System-wide administration of schools, users, and settings
+- **Support Admin Portal**: Technical support and school onboarding
+- **Teacher Portal**: Classroom management, grades, attendance, and resources
+- **School Staff Portal**: Branch-level administration and reporting
+- **Student/Parent Portal**: Academic progress tracking and resource access
 
-## 🚀 Features
-
-### Teacher Portal Features
-- **Dashboard**: Overview of classes, upcoming events, and important metrics
-- **Class Management**: View and manage assigned classes with detailed student information
-- **Attendance Tracking**: Record and monitor student attendance with reporting tools
-- **Assignment Management**: Create, distribute, and grade assignments with student submission tracking
-- **Grading System**: Comprehensive grade management with performance analytics
-- **Messaging System**: Communicate with students, parents, and staff through threaded conversations
-- **Resources Library**: Upload and share teaching materials with organization tools
-- **Profile Management**: Update personal information, credentials, and account settings
-- **Notification System**: Real-time notifications for important events and messages
-
-## 💻 Tech Stack
-
-- **Frontend Framework**: React.js
-- **Routing**: React Router for navigation
-- **Styling**: Tailwind CSS for utility-first styling
-- **State Management**: Context API and custom hooks
-- **Data Fetching**: Axios and React Query
-- **UI Components**: Custom components with Headless UI and Material UI
-- **Charts and Visualization**: Recharts for data visualization
-- **Notifications**: React Hot Toast for toast notifications
-- **Icons**: Heroicons and React Icons
-- **Date Handling**: date-fns for date manipulation
-- **Animation**: Framer Motion for smooth transitions
-
-## 🏗️ Project Structure
+## 🧩 Project Structure
 
 ```
 src/
-├── components/            # Reusable components
-│   ├── common/            # Shared UI components
-│   ├── layout/            # Layout components
-│   └── teacher/           # Teacher-specific components
-│       └── tabs/          # Tab components for teacher pages
-├── contexts/              # React Contexts
-├── hooks/                 # Custom React hooks
-├── pages/                 # Page components
-│   ├── auth/              # Authentication pages
-│   ├── dashboard/         # Dashboard pages
-│   └── teacher/           # Teacher portal pages
-├── services/              # API services
-│   └── messagesApi.js     # API services for messaging functionality
-├── config/                # Application configuration
-└── utils/                 # Utility functions
+├── assets/            # Static assets (images, icons, etc.)
+├── components/        # Reusable UI components
+│   ├── common/        # Shared components used across the application
+│   ├── students/      # Student-specific components
+│   ├── teachers/      # Teacher-specific components
+│   ├── health/        # Health record components
+│   ├── events/        # Calendar and event components
+│   └── layout/        # Layout components for different user roles
+├── config/            # Application configuration
+│   └── api.config.js  # API endpoints and configuration
+├── constants/         # Application constants and enumerations
+├── contexts/          # React context providers
+├── hooks/             # Custom React hooks
+├── mock/              # Mock data for development
+│   └── db.js          # Central mock database
+├── pages/             # Page components organized by feature area
+│   ├── auth/          # Authentication pages (login, signup, etc.)
+│   ├── dashboard/     # Dashboard pages for different roles
+│   ├── students/      # Student management pages
+│   ├── teachers/      # Teacher management pages
+│   ├── events/        # Calendar and event pages
+│   ├── super-admin/   # Super admin specific pages
+│   └── support-admin/ # Support admin specific pages
+├── providers/         # Global providers (query, theme, etc.)
+├── services/          # API services and data access
+│   └── domains/       # Domain-specific service modules
+└── utils/             # Utility functions and helpers
 ```
 
-## 🔧 Installation
+## 🚀 Getting Started
 
-1. Clone the repository:
-```bash
-git clone https://github.com/your-username/school-management-frontend.git
-cd school-management-frontend
-```
+1. Clone the repository
+2. Install dependencies with `npm install`
+3. Start the development server with `npm run dev`
+4. Access the application at `http://localhost:5173`
 
-2. Install dependencies:
-```bash
-npm install
-```
+## 🔑 Authentication
 
-3. Start the development server:
-```bash
-npm run dev
-```
+The system includes multiple login flows:
+- Internal admin login (Super Admin and Support Admin)
+- External login for school staff (Teachers, Directors)
+- Student/Parent portal login
 
-4. Open your browser to the local development URL (usually http://localhost:5173)
+## 🧪 Development
 
-## 🔑 Login Credentials
+### Mock Data
+During development, the application uses mock data from `src/mock/db.js` to simulate backend functionality.
 
-For testing the Teacher Portal, use the following credentials:
-- **Email**: teacher@school.com
-- **Password**: (any password will work for testing)
+### Adding New Features
+1. Create components in the appropriate directory
+2. Add service methods in the corresponding domain service
+3. Create or update page components
+4. Update routes in App.jsx if needed
 
-Other test accounts:
-- Director: director@school.com (any password)
-- HQ: hq@school.com (any password)
+## 📦 Available Scripts
 
-## 📝 Documentation
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
+- `npm test` - Run tests
 
-Each folder contains a README.md file explaining its purpose and contents. The code is documented with clear, concise comments explaining the functionality.
+## 🔧 Technologies
 
-Key documentation files:
-- `src/components/README.md` - Overview of component organization
-- `src/pages/README.md` - Page structure and routing information
-- `src/services/README.md` - API service documentation
-- `src/hooks/README.md` - Custom hooks documentation
-
-## 🧪 Testing
-
-This project includes mock data for development and testing purposes. In a real environment, the application would connect to backend APIs.
-
-## 👨‍💻 Why did the JavaScript developer go broke?
-
-Because he lost his cache! 💾
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- React
+- React Router
+- TailwindCSS
+- Vite

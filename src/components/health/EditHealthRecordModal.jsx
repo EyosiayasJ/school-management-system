@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { recordTypes, branchesList } from '../../../mock-db';
+import { recordTypes, branchesList } from '../../mock';
 
 const EditHealthRecordModal = ({ isOpen, onClose, onSubmit, record }) => {
   const [formData, setFormData] = useState(record);

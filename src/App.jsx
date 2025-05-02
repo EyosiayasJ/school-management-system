@@ -18,11 +18,11 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ToastProvider from './components/common/ToastProvider';
+import { AuthProvider, ROLES } from './contexts/AuthContext';
 import QueryProvider from './providers/QueryProvider';
 
-// Auth Provider
-import { AuthProvider, ROLES } from './contexts/AuthContext';
+// Common components
+import { RoleBasedRoute, ToastProvider } from './components/common';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -31,50 +31,55 @@ import SupportAdminLayout from './components/layout/SupportAdminLayout';
 import SchoolLayout from './components/layout/SchoolLayout';
 import PortalLayout from './components/layout/PortalLayout';
 import TeacherLayout from './components/layout/TeacherLayout';
-import RoleBasedRoute from './components/common/RoleBasedRoute';
 
 // Auth Pages
-import InternalLogin from './pages/auth/InternalLogin';
-import ExternalLogin from './pages/auth/ExternalLogin';
-import AdminLogin from './pages/auth/AdminLogin';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import Unauthorized from './pages/auth/Unauthorized';
+import { 
+  InternalLogin, 
+  ExternalLogin, 
+  AdminLogin, 
+  ForgotPassword, 
+  Unauthorized 
+} from './pages/auth';
 
-// Dashboard and other Pages
-import Dashboard from './pages/dashboard/Dashboard';
-import StudentsList from './pages/students/StudentsList';
-import TeachersList from './pages/teachers/TeachersList';
-import HealthRecordsList from './pages/health/HealthRecordsList';
-import ELibrary from './pages/library/ELibrary';
-import EventsCalendar from './pages/events/EventsCalendar';
-import BranchManagement from './pages/branches/BranchManagement';
+// Dashboard and Pages
+import { Dashboard } from './pages/dashboard';
+import { StudentsList } from './pages/students';
+import { 
+  TeachersList, 
+  Dashboard as TeacherDashboard,
+  Classes,
+  ClassDetail,
+  Attendance,
+  Assignments,
+  Grades,
+  Resources,
+  Messages,
+  Profile
+} from './pages/teachers';
+import { HealthRecordsList } from './pages/health';
+import { ELibrary } from './pages/library';
+import { EventsCalendar } from './pages/events';
+import { BranchManagement } from './pages/branches';
 
 // Super Admin Pages
-import SuperAdminDashboard from './pages/super-admin/Dashboard';
-import Schools from './pages/super-admin/Schools';
-import SchoolDetail from './pages/super-admin/SchoolDetail';
-import Users from './pages/super-admin/Users';
-import Branches from './pages/super-admin/Branches';
-import GlobalSettings from './pages/super-admin/GlobalSettings';
-import BillingPlans from './pages/super-admin/BillingPlans';
-import AuditLogs from './pages/super-admin/AuditLogs';
+import {
+  Dashboard as SuperAdminDashboard,
+  Schools,
+  SchoolDetail,
+  Users,
+  Branches,
+  GlobalSettings,
+  BillingPlans,
+  AuditLogs
+} from './pages/super-admin';
 
 // Support Admin Pages
-import SupportAdminDashboard from './pages/support-admin/Dashboard';
-import OnboardSchool from './pages/support-admin/OnboardSchool';
-import SchoolSettings from './pages/support-admin/SchoolSettings';
-import SchoolBranches from './pages/support-admin/SchoolBranches';
-
-// Teacher Pages
-import TeacherDashboard from './pages/teacher/Dashboard';
-import Classes from './pages/teacher/Classes';
-import ClassDetail from './pages/teacher/ClassDetail';
-import Attendance from './pages/teacher/Attendance';
-import Assignments from './pages/teacher/Assignments';
-import Grades from './pages/teacher/Grades';
-import Resources from './pages/teacher/Resources';
-import Messages from './pages/teacher/Messages';
-import Profile from './pages/teacher/Profile';
+import {
+  Dashboard as SupportAdminDashboard,
+  OnboardSchool,
+  SchoolSettings,
+  SchoolBranches
+} from './pages/support-admin';
 
 /**
  * App Component

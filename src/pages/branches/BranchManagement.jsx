@@ -1,8 +1,8 @@
 // src/pages/branches/BranchManagement.jsx
 
 import React, { useState, useEffect, Fragment } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { branches as mockBranches } from '../../../mock-db';
+import { AnimatePresence } from 'framer-motion';
+import { branches as mockBranches } from '../../mock';
 
 // Skeleton loaders
 import SkeletonStatCard from '../../components/common/SkeletonStatCard';
@@ -75,7 +75,7 @@ const BranchManagement = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <h1 className="text-2xl font-semibold text-gray-900">Branch Management</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Manage your school’s branches, view stats, and perform CRUD operations.
+          Manage your school's branches, view stats, and perform CRUD operations.
         </p>
       </div>
 
@@ -89,18 +89,19 @@ const BranchManagement = () => {
                 ['Total Students', totalStats.students],
                 ['Total Teachers', totalStats.teachers],
               ].map(([label, value], i) => (
-                <motion.div
+                <div
                   key={label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: i * 0.1 }}
-                  className="bg-white shadow-md rounded-lg p-6 min-h-[8rem] flex flex-col justify-center"
+                  className="bg-white shadow-md rounded-lg p-6 min-h-[8rem] flex flex-col justify-center animate-fadeIn"
+                  style={{
+                    animationDelay: `${i * 100}ms`,
+                    animationDuration: '300ms'
+                  }}
                   role="region"
                   aria-label={label}
                 >
                   <dt className="text-sm font-medium text-gray-500 truncate">{label}</dt>
                   <dd className="mt-1 text-2xl font-semibold text-gray-900">{value}</dd>
-                </motion.div>
+                </div>
               ))
           }
         </div>
@@ -187,15 +188,16 @@ const BranchManagement = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading
-              ? <tr><td colSpan="7"><SkeletonTableRow /></td></tr>
+              ? <SkeletonTableRow colSpan={7} />
               : filtered.length > 0
                 ? filtered.map((b, idx) => (
-                    <motion.tr
+                    <tr
                       key={b.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, delay: idx * 0.04 }}
-                      className="hover:bg-gray-50"
+                      className="hover:bg-gray-50 animate-fadeIn"
+                      style={{
+                        animationDelay: `${idx * 40}ms`,
+                        animationDuration: '200ms'
+                      }}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">{b.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{b.location}</td>
@@ -206,7 +208,7 @@ const BranchManagement = () => {
                             : 'bg-gray-100 text-gray-800'
                         }`}>{b.status}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{b.establishedYear}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{b.established}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{b.students}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{b.teachers}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -234,7 +236,7 @@ const BranchManagement = () => {
                           </button>
                         </div>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))
                 : (
                   <tr>
@@ -251,15 +253,31 @@ const BranchManagement = () => {
       {/* Mobile cards */}
       <div className="sm:hidden max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mb-6">
         {loading
-          ? [0,1].map(i => <SkeletonTableRow key={i} />)
+          ? [0,1].map(i => (
+              <div key={i} className="p-4 mb-4 bg-white shadow-md rounded-lg animate-pulse">
+                <div className="flex justify-between items-center">
+                  <span className="h-4 bg-gray-200 rounded-md w-1/3"></span>
+                  <div className="flex space-x-2">
+                    <span className="h-5 w-5 bg-gray-200 rounded-full"></span>
+                    <span className="h-5 w-5 bg-gray-200 rounded-full"></span>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="h-4 bg-gray-200 rounded-md w-1/4"></span>
+                  <span className="h-4 bg-gray-200 rounded-md w-1/4"></span>
+                  <span className="h-4 bg-gray-200 rounded-md w-1/4"></span>
+                </div>
+              </div>
+            ))
           : filtered.length > 0
             ? filtered.map((b, idx) => (
-                <motion.div
+                <div
                   key={b.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.04 }}
-                  className="p-4 mb-4 bg-white shadow-md rounded-lg"
+                  className="p-4 mb-4 bg-white shadow-md rounded-lg animate-fadeIn"
+                  style={{
+                    animationDelay: `${idx * 40}ms`,
+                    animationDuration: '300ms'
+                  }}
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-900">{b.name}</span>
@@ -282,11 +300,11 @@ const BranchManagement = () => {
                   <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-600">
                     <span>Loc: {b.location}</span>
                     <span>Status: {b.status}</span>
-                    <span>Est: {b.establishedYear}</span>
+                    <span>Est: {b.established}</span>
                     <span>Stu: {b.students}</span>
                     <span>Tch: {b.teachers}</span>
                   </div>
-                </motion.div>
+                </div>
               ))
             : <div className="text-center text-gray-500">No branches found.</div>
         }
