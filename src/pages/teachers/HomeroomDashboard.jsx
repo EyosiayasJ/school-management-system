@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { FaChartLine, FaSpinner, FaPaperPlane, FaStar, FaEdit, FaEye, FaHome, FaUserFriends, FaUser } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaChartLine, FaSpinner, FaPaperPlane, FaStar, FaEdit, FaEye, FaHome, FaUserFriends, FaUser, FaCheckCircle, FaTimesCircle, FaClock, FaFileAlt, FaComment, FaInfo } from 'react-icons/fa';
 
 import { useTerms } from '../../contexts/TermContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHomeroomDashboard, useTermReports } from '../../hooks/useTermData';
 import { gpaToLetterGrade, isPassing } from '../../utils/gradeUtils';
+import { useAttendance } from '../../hooks/useAttendance';
+import { ATTENDANCE_STATUS } from '../../services/domains/attendance';
 
 import Card from '../../components/common/Card';
 import StatCard from '../../components/common/StatCard';
@@ -12,6 +14,10 @@ import Modal from '../../components/common/Modal';
 import Tabs from '../../components/common/Tabs';
 import DataTable from '../../components/common/DataTable';
 import BehaviorRatingForm from '../../components/teacher/BehaviorRatingForm';
+import FormField from '../../components/common/FormField';
+import AttendanceNoteModal from '../../components/teacher/AttendanceNoteModal';
+import SkeletonAttendanceRow from '../../components/common/SkeletonAttendanceRow';
+import StudentAttendance from '../../components/teacher/StudentAttendance';
 
 // Mock student names with first, second (optional), and last name format
 const STUDENT_NAMES = {
@@ -52,6 +58,53 @@ const formatNameWithTitle = (nameObj) => {
   return title ? `${title} ${first} ${last}` : `${first} ${last}`;
 };
 
+// Helper to get date string for today
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Format date for display
+const formatDate = (dateString) => {
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+};
+
+// Status color mapping for attendance
+const STATUS_COLORS = {
+  [ATTENDANCE_STATUS.PRESENT]: {
+    bg: 'bg-green-100',
+    text: 'text-green-800',
+    hoverBg: 'hover:bg-green-200',
+    iconColor: 'text-green-600',
+    icon: <FaCheckCircle className="w-5 h-5" />
+  },
+  [ATTENDANCE_STATUS.ABSENT]: {
+    bg: 'bg-red-100',
+    text: 'text-red-800',
+    hoverBg: 'hover:bg-red-200',
+    iconColor: 'text-red-600',
+    icon: <FaTimesCircle className="w-5 h-5" />
+  },
+  [ATTENDANCE_STATUS.LATE]: {
+    bg: 'bg-yellow-100',
+    text: 'text-yellow-800',
+    hoverBg: 'hover:bg-yellow-200',
+    iconColor: 'text-yellow-600',
+    icon: <FaClock className="w-5 h-5" />
+  },
+  [ATTENDANCE_STATUS.EXCUSED]: {
+    bg: 'bg-blue-100',
+    text: 'text-blue-800', 
+    hoverBg: 'hover:bg-blue-200',
+    iconColor: 'text-blue-600',
+    icon: <FaFileAlt className="w-5 h-5" />
+  }
+};
+
 /**
  * HomeroomDashboard Component
  * Shows homeroom teachers a dashboard with student grades, ranks, and behavior data
@@ -61,11 +114,17 @@ export default function HomeroomDashboard() {
   const { user } = useAuth();
   const classId = user?.classId || 'c1'; // Default to c1 for demo
   const teacherId = user?.id || 't1'; // Default to t1 for demo
+  const homeroomClassId = classId; // Use class ID as homeroom ID
   
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [gradeModalOpen, setGradeModalOpen] = useState(false);
   const [selectedGradeStudent, setSelectedGradeStudent] = useState(null);
+  
+  // Attendance specific state
+  const [selectedDate, setSelectedDate] = useState(getTodayDateString());
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [selectedAttendanceStudent, setSelectedAttendanceStudent] = useState(null);
   
   // Get data from hooks
   const { loading, error, students } = useHomeroomDashboard(
@@ -80,6 +139,36 @@ export default function HomeroomDashboard() {
     success: reportSuccess, 
     generateReports 
   } = useTermReports(currentTerm?.id);
+  
+  // Use our custom attendance hook
+  const {
+    loading: attendanceLoading,
+    attendanceMap,
+    saving,
+    saveError,
+    saveSuccess,
+    initializeAttendance,
+    updateAttendanceStatus,
+    updateAttendanceNotes,
+    markAllStatus,
+    saveAttendance,
+    getAttendanceStats
+  } = useAttendance(homeroomClassId, selectedDate);
+  
+  // Attendance stats
+  const attendanceStats = getAttendanceStats();
+  
+  // Initialize attendance when students load
+  useEffect(() => {
+    if (students.length > 0) {
+      // Convert students to format expected by initializeAttendance
+      const formattedStudents = students.map(student => ({
+        id: student.studentId,
+        name: STUDENT_NAMES[student.studentId] ? formatFullName(STUDENT_NAMES[student.studentId]) : student.studentId
+      }));
+      initializeAttendance(formattedStudents);
+    }
+  }, [students, initializeAttendance]);
   
   // Handle opening the behavior rating modal
   const handleRateStudent = (student) => {
@@ -207,19 +296,117 @@ export default function HomeroomDashboard() {
     }
   ];
   
+  // Handle date change for attendance
+  const handleDateChange = (e) => {
+    setSelectedDate(e.target.value);
+  };
+
+  // Handle attendance status change
+  const handleAttendanceChange = (studentId, status) => {
+    updateAttendanceStatus(studentId, status);
+  };
+
+  // Handle save attendance
+  const handleSaveAttendance = () => {
+    saveAttendance();
+  };
+
+  // Handle mark all function
+  const handleMarkAll = (status) => {
+    markAllStatus(status);
+  };
+
+  // Handle adding a note
+  const handleAddNote = (student) => {
+    setSelectedAttendanceStudent(student);
+    setNoteModalOpen(true);
+  };
+
+  // Handle saving note
+  const handleSaveNote = (note) => {
+    if (selectedAttendanceStudent) {
+      updateAttendanceNotes(selectedAttendanceStudent.id, note);
+    }
+    setNoteModalOpen(false);
+    setSelectedAttendanceStudent(null);
+  };
+
+  // Render status button for attendance
+  const renderStatusButton = (status, studentId, currentStatus) => {
+    const isActive = currentStatus === status;
+    const statusInfo = STATUS_COLORS[status];
+    
+    return (
+      <button
+        onClick={() => handleAttendanceChange(studentId, status)}
+        className={`
+          py-1 px-3 rounded-md flex items-center justify-center transition-colors
+          ${isActive ? `${statusInfo.bg} ${statusInfo.text}` : 'bg-gray-100 text-gray-600'}
+          ${!isActive && statusInfo.hoverBg}
+          disabled:opacity-50 disabled:cursor-not-allowed
+        `}
+        disabled={saving}
+        aria-label={`Mark as ${status}`}
+      >
+        <span className={`mr-1 ${isActive ? statusInfo.iconColor : ''}`}>
+          {statusInfo.icon}
+        </span>
+        <span className="hidden sm:inline">{status}</span>
+      </button>
+    );
+  };
+  
   // Content for the different tabs
   const tabContent = [
+    {
+      label: 'Attendance',
+      content: (
+        <div className="mt-4">
+          <StudentAttendance 
+            students={students}
+            attendanceMap={attendanceMap}
+            attendanceStats={attendanceStats}
+            updateAttendanceStatus={updateAttendanceStatus}
+            updateAttendanceNotes={updateAttendanceNotes}
+            markAllStatus={markAllStatus}
+            saveAttendance={saveAttendance}
+            loading={loading || attendanceLoading}
+            saving={saving}
+            saveSuccess={saveSuccess}
+            saveError={saveError}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            studentNames={STUDENT_NAMES}
+            studentPhotos={STUDENT_PHOTOS}
+            formatFullName={formatFullName}
+            title="Daily Homeroom Attendance"
+            subtitle="Record daily attendance for your homeroom class"
+            infoTitle="Homeroom Attendance Information"
+            infoText="Daily homeroom attendance is required and must be submitted before 9:30 AM. Absence records from homeroom will be visible to all teachers, but can only be modified by you."
+          />
+        </div>
+      )
+    },
     {
       label: 'Rankings',
       content: (
         <div className="mt-4">
-          <DataTable
-            columns={columns}
-            data={students}
-            loading={loading}
-            error={error}
-            emptyMessage="No student data available for this term"
-          />
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold">Student Rankings</h3>
+            <p className="text-sm text-gray-500">View and manage student academic performance rankings</p>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6">
+              <DataTable
+                columns={columns}
+                data={students}
+                loading={loading}
+                error={error}
+                emptyMessage="No student data available for this term"
+              />
+            </div>
+          </div>
         </div>
       )
     },
@@ -227,6 +414,11 @@ export default function HomeroomDashboard() {
       label: 'Reports',
       content: (
         <div className="mt-4 space-y-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold">Term Reports</h3>
+            <p className="text-sm text-gray-500">Generate and send term reports for your homeroom class</p>
+          </div>
+          
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold mb-4">Generate Term Reports</h3>
             <p className="mb-4 text-gray-700">
@@ -472,6 +664,27 @@ export default function HomeroomDashboard() {
           )}
         </div>
       </Modal>
+      
+      {/* Attendance Note Modal */}
+      {noteModalOpen && selectedAttendanceStudent && (
+        <AttendanceNoteModal
+          isOpen={noteModalOpen}
+          onClose={() => setNoteModalOpen(false)}
+          studentName={STUDENT_NAMES[selectedAttendanceStudent.id] 
+            ? formatFullName(STUDENT_NAMES[selectedAttendanceStudent.id]) 
+            : selectedAttendanceStudent.id}
+          initialNote={attendanceMap[selectedAttendanceStudent.id]?.notes || ''}
+          onSave={handleSaveNote}
+          saving={saving}
+        />
+      )}
     </div>
   );
-} 
+}
+
+// Helper to get initials from name object
+const getInitials = (nameObj) => {
+  if (!nameObj) return '?';
+  const { first, last } = nameObj;
+  return `${first.charAt(0)}${last.charAt(0)}`;
+}; 
