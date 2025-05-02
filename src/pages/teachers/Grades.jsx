@@ -130,6 +130,9 @@ const Grades = () => {
     totalPoints: 20,
     weight: 10
   });
+  const [showCopyAssignmentsModal, setShowCopyAssignmentsModal] = useState(false);
+  const [targetClasses, setTargetClasses] = useState([]);
+  const [assignmentsToCopy, setAssignmentsToCopy] = useState([]);
   
   // Fetch teacher's classes
   useEffect(() => {
@@ -428,7 +431,18 @@ const Grades = () => {
     setStudentCommentText('');
   };
   
-  // Handle opening the assignment modal
+  // Handle clicking the Add Assignment button on empty state page
+  const handleEmptyStateAddAssignment = () => {
+    setEditingAssignment(null);
+    setAssignmentForm({
+      title: '',
+      totalPoints: 20,
+      weight: 10
+    });
+    setShowAssignmentModal(true);
+  };
+
+  // Handle adding a new assignment
   const handleAddAssignment = () => {
     setEditingAssignment(null);
     setAssignmentForm({
@@ -448,15 +462,6 @@ const Grades = () => {
       weight: assignment.weight
     });
     setShowAssignmentModal(true);
-  };
-
-  // Handle assignment form changes
-  const handleAssignmentFormChange = (e) => {
-    const { name, value } = e.target;
-    setAssignmentForm(prev => ({
-      ...prev,
-      [name]: name === 'title' ? value : Number(value)
-    }));
   };
 
   // Save a new assignment or update an existing one
@@ -572,7 +577,61 @@ const Grades = () => {
       setIsSaving(false);
     }, 500);
   };
-  
+
+  // Handle opening the copy assignments modal
+  const handleOpenCopyAssignmentsModal = () => {
+    setTargetClasses([]);
+    // Get assignments for current class
+    const currentClassAssignments = assignments.map(a => ({
+      ...a,
+      selected: true
+    }));
+    setAssignmentsToCopy(currentClassAssignments);
+    setShowCopyAssignmentsModal(true);
+  };
+
+  // Toggle assignment selection for copy
+  const toggleAssignmentSelection = (assignmentId) => {
+    setAssignmentsToCopy(prev => 
+      prev.map(a => a.id === assignmentId ? { ...a, selected: !a.selected } : a)
+    );
+  };
+
+  // Toggle target class selection for copy
+  const toggleTargetClassSelection = (classId) => {
+    if (targetClasses.includes(classId)) {
+      setTargetClasses(prev => prev.filter(id => id !== classId));
+    } else {
+      setTargetClasses(prev => [...prev, classId]);
+    }
+  };
+
+  // Copy selected assignments to target classes
+  const handleCopyAssignments = () => {
+    if (targetClasses.length === 0) {
+      alert('Please select at least one target class');
+      return;
+    }
+
+    const selectedAssignments = assignmentsToCopy.filter(a => a.selected);
+    
+    if (selectedAssignments.length === 0) {
+      alert('Please select at least one assignment');
+      return;
+    }
+
+    setIsSaving(true);
+
+    // In a real app, we would call the API
+    // For now, just simulate a delay
+    setTimeout(() => {
+      // Successfully copied assignments
+      setShowCopyAssignmentsModal(false);
+      setIsSaving(false);
+      alert(`Successfully copied ${selectedAssignments.length} assignment(s) to ${targetClasses.length} class(es)`);
+    }, 800);
+  };
+
   return (
     <div className="space-y-6 p-6">
       <ActionBar
@@ -626,7 +685,7 @@ const Grades = () => {
               
               <div className="mt-6">
                 <button
-                  onClick={() => setShowAssignmentModal(true)}
+                  onClick={handleEmptyStateAddAssignment}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto"
                 >
                   <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -673,6 +732,16 @@ const Grades = () => {
                   />
                   
                   <div className="flex space-x-2">
+                    <button
+                      onClick={handleOpenCopyAssignmentsModal}
+                      className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Copy Assignments
+                    </button>
+                    
                     <button
                       onClick={handleAddAssignment}
                       className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center"
@@ -1031,7 +1100,7 @@ const Grades = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="e.g. Midterm Exam"
                   value={assignmentForm.title}
-                  onChange={handleAssignmentFormChange}
+                  onChange={(e) => setAssignmentForm(prev => ({ ...prev, title: e.target.value }))}
                 />
               </div>
               
@@ -1046,7 +1115,7 @@ const Grades = () => {
                   min="1"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={assignmentForm.totalPoints}
-                  onChange={handleAssignmentFormChange}
+                  onChange={(e) => setAssignmentForm(prev => ({ ...prev, totalPoints: Number(e.target.value) }))}
                 />
               </div>
               
@@ -1062,7 +1131,7 @@ const Grades = () => {
                   max="100"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={assignmentForm.weight}
-                  onChange={handleAssignmentFormChange}
+                  onChange={(e) => setAssignmentForm(prev => ({ ...prev, weight: Number(e.target.value) }))}
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   The weight determines how much this assignment contributes to the final grade.
@@ -1086,6 +1155,103 @@ const Grades = () => {
               >
                 {isSaving ? 'Saving...' : editingAssignment ? 'Update Assignment' : 'Add Assignment'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Copy Assignments Modal */}
+      {showCopyAssignmentsModal && (
+        <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Copy Assignments to Other Classes
+              </h3>
+              <button 
+                className="text-gray-400 hover:text-gray-500" 
+                onClick={() => setShowCopyAssignmentsModal(false)}
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-md font-medium text-gray-700 mb-2">Select Assignments to Copy</h4>
+                <div className="border rounded-lg overflow-hidden max-h-80 overflow-y-auto">
+                  <ul className="divide-y divide-gray-200">
+                    {assignmentsToCopy.map(assignment => (
+                      <li key={assignment.id} className="p-3 hover:bg-gray-50">
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            checked={assignment.selected}
+                            onChange={() => toggleAssignmentSelection(assignment.id)}
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">{assignment.title}</p>
+                            <p className="text-xs text-gray-500">{assignment.totalPoints} pts • {assignment.weight}% weight</p>
+                          </div>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-md font-medium text-gray-700 mb-2">Select Target Classes</h4>
+                <div className="border rounded-lg overflow-hidden max-h-80 overflow-y-auto">
+                  <ul className="divide-y divide-gray-200">
+                    {classes
+                      .filter(cls => cls.id !== selectedClass)
+                      .map(cls => (
+                        <li key={cls.id} className="p-3 hover:bg-gray-50">
+                          <label className="flex items-center space-x-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                              checked={targetClasses.includes(cls.id)}
+                              onChange={() => toggleTargetClassSelection(cls.id)}
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">{cls.name}</p>
+                              <p className="text-xs text-gray-500">{cls.grade} - Section {cls.section}</p>
+                            </div>
+                          </label>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <p className="text-xs text-gray-500 mb-4">
+                <strong>Note:</strong> Copying assignments will add them to the selected classes, preserving total points and weights. Existing grades will not be affected.
+              </p>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onClick={() => setShowCopyAssignmentsModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onClick={handleCopyAssignments}
+                  disabled={isSaving || targetClasses.length === 0 || !assignmentsToCopy.some(a => a.selected)}
+                >
+                  {isSaving ? 'Copying...' : 'Copy Assignments'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
