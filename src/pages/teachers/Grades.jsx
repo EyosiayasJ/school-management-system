@@ -295,7 +295,7 @@ const Grades = () => {
     const percentage = (score / totalPoints) * 100;
     
     if (percentage >= 90) return 'bg-green-50 text-green-800';
-    if (percentage >= 80) return 'bg-blue-50 text-blue-800';
+    if (percentage >= 80) return 'bg-green-100 text-green-700';
     if (percentage >= 70) return 'bg-yellow-50 text-yellow-800';
     if (percentage >= 60) return 'bg-orange-50 text-orange-800';
     return 'bg-red-50 text-red-800';
