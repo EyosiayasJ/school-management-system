@@ -8,6 +8,7 @@ export { default as RoleBasedRoute } from './RoleBasedRoute';
 export { default as SkeletonActionBar } from './SkeletonActionBar';
 export { default as SkeletonStatCard } from './SkeletonStatCard';
 export { default as SkeletonTableRow } from './SkeletonTableRow';
+export { default as SkeletonAttendanceRow } from './SkeletonAttendanceRow';
 export { default as StatCard } from './StatCard';
 export { default as Tabs } from './Tabs';
 export { default as ToastProvider } from './ToastProvider';

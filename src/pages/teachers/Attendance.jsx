@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiFileText, FiCheckCircle, FiXCircle, FiClock, FiMessageSquare, FiInfo } from 'react-icons/fi';
 import ActionBar from '../../components/common/ActionBar';
 import FormField from '../../components/common/FormField';
+import Card from '../../components/common/Card';
+import StatCard from '../../components/common/StatCard';
+import { useAttendance } from '../../hooks/useAttendance';
+import { ATTENDANCE_STATUS } from '../../services/domains/attendance';
+import AttendanceNoteModal from '../../components/teacher/AttendanceNoteModal';
+import SkeletonAttendanceRow from '../../components/common/SkeletonAttendanceRow';
+import teacherScheduleService from '../../services/domains/teacherSchedule';
 
 // Mock data for development
 const MOCK_CLASSES = [
@@ -48,7 +56,66 @@ const getTodayDateString = () => {
 // Generate initials from name
 const getInitials = (name) => {
   const names = name.split(' ');
-  return names.map(n => n.charAt(0)).join('');
+  return names.map(n => n.charAt(0)).join('').toUpperCase();
+};
+
+// Format date for display
+const formatDate = (dateString) => {
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+};
+
+// Format time for display
+const formatTime = (timeString) => {
+  if (!timeString) return '';
+  
+  // Convert 24-hour time to 12-hour time with AM/PM
+  const [hours, minutes] = timeString.split(':');
+  const hour = parseInt(hours, 10);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  
+  return `${hour12}:${minutes} ${period}`;
+};
+
+// Get current time
+const getCurrentTime = () => {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+// Status color mapping
+const STATUS_COLORS = {
+  [ATTENDANCE_STATUS.PRESENT]: {
+    bg: 'bg-green-100',
+    text: 'text-green-800',
+    hoverBg: 'hover:bg-green-200',
+    iconColor: 'text-green-600',
+    icon: <FiCheckCircle className="w-5 h-5" />
+  },
+  [ATTENDANCE_STATUS.ABSENT]: {
+    bg: 'bg-red-100',
+    text: 'text-red-800',
+    hoverBg: 'hover:bg-red-200',
+    iconColor: 'text-red-600',
+    icon: <FiXCircle className="w-5 h-5" />
+  },
+  [ATTENDANCE_STATUS.LATE]: {
+    bg: 'bg-yellow-100',
+    text: 'text-yellow-800',
+    hoverBg: 'hover:bg-yellow-200',
+    iconColor: 'text-yellow-600',
+    icon: <FiClock className="w-5 h-5" />
+  },
+  [ATTENDANCE_STATUS.EXCUSED]: {
+    bg: 'bg-blue-100',
+    text: 'text-blue-800', 
+    hoverBg: 'hover:bg-blue-200',
+    iconColor: 'text-blue-600',
+    icon: <FiFileText className="w-5 h-5" />
+  }
 };
 
 const Attendance = () => {
@@ -57,11 +124,77 @@ const Attendance = () => {
   const [classLoading, setClassLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(getTodayDateString());
   const [students, setStudents] = useState([]);
-  const [attendance, setAttendance] = useState({});
   const [studentsLoading, setStudentsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [classes, setClasses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [currentSchedule, setCurrentSchedule] = useState(null);
+  const [scheduleLoading, setScheduleLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(getCurrentTime());
+  
+  // Update time every minute
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(getCurrentTime());
+    }, 60000);
+    
+    return () => clearInterval(timeInterval);
+  }, []);
+  
+  // Use our custom attendance hook
+  const {
+    loading: attendanceLoading,
+    error: attendanceError,
+    attendanceMap,
+    saving,
+    saveError,
+    saveSuccess,
+    initializeAttendance,
+    updateAttendanceStatus,
+    updateAttendanceNotes,
+    markAllStatus,
+    saveAttendance,
+    getAttendanceStats
+  } = useAttendance(selectedClass, selectedDate);
+  
+  // Attendance stats
+  const stats = getAttendanceStats();
+  
+  // Fetch teacher's schedule
+  useEffect(() => {
+    const fetchTeacherSchedule = async () => {
+      setScheduleLoading(true);
+      try {
+        // In a real app, you'd get the teacher ID from auth context
+        const teacherId = 'teacher-001';
+        const response = await teacherScheduleService.getCurrentClass(teacherId);
+        
+        if (response.status === 200) {
+          setCurrentSchedule(response.data);
+          
+          // If a class is currently in session, select it
+          if (response.data.currentClass) {
+            setSelectedClass(response.data.currentClass.id);
+          }
+          // Otherwise, if there's a next class today, select it
+          else if (response.data.nextClass) {
+            setSelectedClass(response.data.nextClass.id);
+          }
+          // If no classes today or all classes are over, select the first class in schedule
+          else if (response.data.allClasses && response.data.allClasses.length > 0) {
+            setSelectedClass(response.data.allClasses[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching teacher schedule:', error);
+      } finally {
+        setScheduleLoading(false);
+      }
+    };
+    
+    fetchTeacherSchedule();
+  }, []);
   
   // Fetch teacher's classes
   useEffect(() => {
@@ -89,20 +222,19 @@ const Attendance = () => {
       setTimeout(() => {
         const classStudents = MOCK_STUDENTS[selectedClass] || [];
         setStudents(classStudents);
-        
-        // Initialize attendance state with all present
-        const initialAttendance = {};
-        classStudents.forEach(student => {
-          initialAttendance[student.id] = 'present';
-        });
-        
-        setAttendance(initialAttendance);
         setStudentsLoading(false);
       }, 800);
     };
     
     fetchStudents();
   }, [selectedClass]);
+  
+  // Initialize attendance when students are loaded
+  useEffect(() => {
+    if (students.length > 0) {
+      initializeAttendance(students);
+    }
+  }, [students, initializeAttendance]);
   
   // Handle class change
   const handleClassChange = (e) => {
@@ -116,10 +248,7 @@ const Attendance = () => {
   
   // Handle attendance status change
   const handleAttendanceChange = (studentId, status) => {
-    setAttendance(prev => ({
-      ...prev,
-      [studentId]: status
-    }));
+    updateAttendanceStatus(studentId, status);
   };
   
   // Filter students based on search term
@@ -130,31 +259,38 @@ const Attendance = () => {
   
   // Handle save attendance
   const handleSaveAttendance = () => {
-    setIsSaving(true);
-    
-    // In a real app, we would send this to the server
-    console.log(`Saving attendance for class ${selectedClass} on ${selectedDate}:`, attendance);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      alert('Attendance saved successfully!');
-    }, 1000);
+    saveAttendance();
   };
   
   // Handle mark all function
   const handleMarkAll = (status) => {
-    const newAttendance = {};
-    students.forEach(student => {
-      newAttendance[student.id] = status;
-    });
-    setAttendance(newAttendance);
+    markAllStatus(status);
   };
   
-  // Get class name from ID
-  const getClassName = (classId) => {
-    const cls = classes.find(c => c.id === classId);
-    return cls ? `${cls.name} - ${cls.grade} - Section ${cls.section}` : '';
+  // Get current class info
+  const getCurrentClassInfo = () => {
+    if (!currentSchedule) return null;
+    
+    if (currentSchedule.currentClass && currentSchedule.currentClass.id === selectedClass) {
+      return {
+        type: 'current',
+        message: `Class in session (${formatTime(currentSchedule.currentClass.startTime)} - ${formatTime(currentSchedule.currentClass.endTime)})`
+      };
+    } else if (currentSchedule.nextClass && currentSchedule.nextClass.id === selectedClass) {
+      return {
+        type: 'next',
+        message: `Upcoming class (${formatTime(currentSchedule.nextClass.startTime)} - ${formatTime(currentSchedule.nextClass.endTime)})`
+      };
+    } else if (currentSchedule.allClasses) {
+      const classInfo = currentSchedule.allClasses.find(c => c.id === selectedClass);
+      if (classInfo) {
+        return {
+          type: 'scheduled',
+          message: `Scheduled for ${formatTime(classInfo.startTime)} - ${formatTime(classInfo.endTime)}`
+        };
+      }
+    }
+    return null;
   };
   
   // Navigate to class detail
@@ -164,106 +300,88 @@ const Attendance = () => {
     }
   };
   
+  // Handle opening the note modal
+  const handleAddNote = (student) => {
+    setSelectedStudent(student);
+    setNoteModalOpen(true);
+  };
+  
+  // Handle saving a note
+  const handleSaveNote = (note) => {
+    if (selectedStudent) {
+      updateAttendanceNotes(selectedStudent.id, note);
+    }
+  };
+  
+  // Function to render attendance status button with proper styling
+  const renderStatusButton = (status, studentId, currentStatus) => {
+    const isActive = currentStatus === status;
+    const statusInfo = STATUS_COLORS[status];
+    
+    return (
+      <button
+        type="button"
+        onClick={() => handleAttendanceChange(studentId, status)}
+        className={`
+          flex items-center justify-center px-3 py-1.5 rounded-md border
+          ${isActive ? `${statusInfo.bg} ${statusInfo.text} border-transparent` : 'bg-white text-gray-700 border-gray-300'}
+          ${isActive ? statusInfo.hoverBg : 'hover:bg-gray-50'}
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+        `}
+      >
+        <span className={`mr-1 ${isActive ? statusInfo.iconColor : 'text-gray-400'}`}>
+          {statusInfo.icon}
+        </span>
+        <span className="text-sm font-medium capitalize">{status}</span>
+      </button>
+    );
+  };
+
+  // Current class info
+  const classInfo = getCurrentClassInfo();
+  
   return (
     <div className="space-y-6 p-6">
       <ActionBar
         title="Attendance"
-        subtitle="Mark and track student attendance"
+        subtitle={`${formatDate(selectedDate)} • ${currentTime}`}
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left column: Class selection */}
-        <div className="md:col-span-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Select Class & Date</h2>
-            
-            <div className="space-y-4">
-              <FormField
-                label="Class"
-                name="class"
-                type="select"
-                value={selectedClass}
-                onChange={handleClassChange}
-                disabled={classLoading}
-              >
-                <option value="">Select a class</option>
-                {classes.map(cls => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name} - {cls.grade} - Section {cls.section}
-                  </option>
-                ))}
-              </FormField>
-              
-              <FormField
-                label="Date"
-                name="date"
-                type="date"
-                value={selectedDate}
-                onChange={handleDateChange}
-                disabled={!selectedClass}
-              />
-              
-              {selectedClass && (
-                <div className="pt-4">
-                  <button
-                    onClick={handleViewClass}
-                    className="w-full px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    View Class Details
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {selectedClass && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleMarkAll('present')}
-                  className="w-full px-4 py-2 text-sm font-medium text-green-800 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
-                >
-                  Mark All Present
-                </button>
-                
-                <button
-                  onClick={() => handleMarkAll('absent')}
-                  className="w-full px-4 py-2 text-sm font-medium text-red-800 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
-                >
-                  Mark All Absent
-                </button>
-                
-                <button
-                  onClick={() => handleMarkAll('late')}
-                  className="w-full px-4 py-2 text-sm font-medium text-yellow-800 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition-colors"
-                >
-                  Mark All Late
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Right column: Attendance list */}
-        <div className="md:col-span-2">
-          {!selectedClass ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+      <div className="grid grid-cols-1 gap-6">
+        {!selectedClass ? (
+          <Card>
+            <div className="p-8 text-center">
               <svg className="w-16 h-16 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No Class Selected</h3>
+              <h3 className="mt-4 text-lg font-medium text-gray-900">Loading Your Classes</h3>
               <p className="mt-2 text-sm text-gray-500">
-                Please select a class from the left to mark attendance.
+                Based on your schedule, the system will automatically load your current or upcoming class.
               </p>
             </div>
-          ) : studentsLoading ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </Card>
+        ) : studentsLoading || attendanceLoading ? (
+          <Card>
+            <div className="divide-y divide-gray-200">
+              <div className="p-4 bg-blue-50 border-b border-blue-100">
+                <div className="h-6 bg-blue-200 rounded w-1/3 animate-pulse"></div>
+                
+                <div className="mt-2 flex justify-between items-center">
+                  <div className="h-4 bg-blue-200 rounded w-1/4 animate-pulse"></div>
+                  <div className="h-8 bg-blue-200 rounded w-32 animate-pulse"></div>
+                </div>
+              </div>
+              
+              <div className="divide-y divide-gray-200">
+                {[...Array(5)].map((_, index) => (
+                  <SkeletonAttendanceRow key={index} />
+                ))}
+              </div>
             </div>
-          ) : students.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+          </Card>
+        ) : students.length === 0 ? (
+          <Card>
+            <div className="p-8 text-center">
               <svg className="w-16 h-16 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
@@ -272,62 +390,175 @@ const Attendance = () => {
                 There are no students enrolled in this class.
               </p>
             </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          </Card>
+        ) : (
+          <Card>
+            <div className="divide-y divide-gray-200">
+              {/* Header with class selection and controls */}
               <div className="p-4 bg-blue-50 border-b border-blue-100">
-                <h2 className="font-medium text-blue-800">
-                  {getClassName(selectedClass)} • {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </h2>
-                
-                <div className="mt-2 flex justify-between items-center">
-                  <p className="text-sm text-blue-600">
-                    {students.length} Students • {Object.values(attendance).filter(s => s === 'present').length} Present
-                  </p>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
+                  <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3 md:mb-0">
+                    <select
+                      value={selectedClass}
+                      onChange={handleClassChange}
+                      disabled={classLoading || scheduleLoading}
+                      className="p-2 border border-blue-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    >
+                      <option value="">Select a class</option>
+                      {classes.map(cls => (
+                        <option key={cls.id} value={cls.id}>
+                          {cls.name} - {cls.grade} - Section {cls.section}
+                        </option>
+                      ))}
+                    </select>
+                    
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={handleDateChange}
+                      disabled={!selectedClass}
+                      className="p-2 border border-blue-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                    
+                    {classInfo && (
+                      <div className={`text-sm p-2 rounded-md flex items-center ${
+                        classInfo.type === 'current' ? 'bg-green-50 text-green-700' : 
+                        classInfo.type === 'next' ? 'bg-blue-50 text-blue-700' : 
+                        'bg-gray-50 text-gray-700'
+                      }`}>
+                        <FiInfo className="mr-2" />
+                        {classInfo.message}
+                      </div>
+                    )}
+                  </div>
                   
-                  <input
-                    type="text"
-                    placeholder="Search students..."
-                    className="px-3 py-1.5 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Search students..."
+                      className="px-3 py-1.5 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    
+                    <button
+                      onClick={handleViewClass}
+                      className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      Class Details
+                    </button>
+                  </div>
                 </div>
+                
+                {/* Quick Actions & Stats */}
+                <div className="flex flex-col md:flex-row justify-between mt-3">
+                  <div className="flex flex-wrap gap-2 mb-3 md:mb-0">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-green-100 text-green-800">
+                      {stats.present} Present ({stats.presentPercentage}%)
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-red-100 text-red-800">
+                      {stats.absent} Absent
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
+                      {stats.late} Late
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
+                      {stats.excused} Excused
+                    </span>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleMarkAll(ATTENDANCE_STATUS.PRESENT)}
+                      className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded hover:bg-green-200 transition-colors"
+                    >
+                      All Present
+                    </button>
+                    <button
+                      onClick={() => handleMarkAll(ATTENDANCE_STATUS.ABSENT)}
+                      className="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded hover:bg-red-200 transition-colors"
+                    >
+                      All Absent
+                    </button>
+                    <button
+                      onClick={() => handleMarkAll(ATTENDANCE_STATUS.LATE)}
+                      className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded hover:bg-yellow-200 transition-colors"
+                    >
+                      All Late
+                    </button>
+                    <button
+                      onClick={() => handleMarkAll(ATTENDANCE_STATUS.EXCUSED)}
+                      className="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded hover:bg-blue-200 transition-colors"
+                    >
+                      All Excused
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Notifications */}
+                {saveSuccess && (
+                  <div className="mt-2 p-2 bg-green-100 text-green-800 rounded-md text-sm">
+                    Attendance saved successfully!
+                  </div>
+                )}
+                
+                {saveError && (
+                  <div className="mt-2 p-2 bg-red-100 text-red-800 rounded-md text-sm">
+                    Error: {saveError}
+                  </div>
+                )}
+                
+                {attendanceError && (
+                  <div className="mt-2 p-2 bg-red-100 text-red-800 rounded-md text-sm">
+                    Error: {attendanceError}
+                  </div>
+                )}
               </div>
               
+              {/* Student List */}
               <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
-                {filteredStudents.map(student => (
-                  <div key={student.id} className="p-4 flex items-center hover:bg-gray-50">
-                    <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                      {getInitials(student.name)}
-                    </div>
+                {filteredStudents.length > 0 ? (
+                  filteredStudents.map(student => {
+                    const attendanceRecord = attendanceMap[student.id] || { status: ATTENDANCE_STATUS.PRESENT, notes: '' };
+                    const hasNotes = attendanceRecord.notes && attendanceRecord.notes.trim().length > 0;
                     
-                    <div className="ml-4 flex-1">
-                      <div className="text-sm font-medium text-gray-900">{student.name}</div>
-                      <div className="text-sm text-gray-500">{student.roll_number}</div>
-                    </div>
-                    
-                    <div>
-                      <select
-                        value={attendance[student.id] || 'present'}
-                        onChange={(e) => handleAttendanceChange(student.id, e.target.value)}
-                        className={`
-                          rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50
-                          ${attendance[student.id] === 'present' ? 'bg-green-50 text-green-800' : 
-                            attendance[student.id] === 'absent' ? 'bg-red-50 text-red-800' : 
-                            attendance[student.id] === 'late' ? 'bg-yellow-50 text-yellow-800' : 
-                            'bg-gray-50 text-gray-800'}
-                        `}
-                      >
-                        <option value="present">Present</option>
-                        <option value="absent">Absent</option>
-                        <option value="late">Late</option>
-                        <option value="excused">Excused</option>
-                      </select>
-                    </div>
-                  </div>
-                ))}
-                
-                {filteredStudents.length === 0 && (
+                    return (
+                      <div key={student.id} className="p-4 hover:bg-gray-50">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                            {getInitials(student.name)}
+                          </div>
+                          
+                          <div className="ml-4 flex-1">
+                            <div className="text-sm font-medium text-gray-900 flex items-center">
+                              {student.name}
+                              {hasNotes && (
+                                <span className="ml-2 text-blue-500" title={attendanceRecord.notes}>
+                                  <FiMessageSquare className="w-4 h-4" />
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-500">{student.roll_number}</div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            {Object.values(ATTENDANCE_STATUS).map(status => (
+                              renderStatusButton(status, student.id, attendanceRecord.status)
+                            ))}
+                            
+                            <button
+                              onClick={() => handleAddNote(student)}
+                              className="ml-2 p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md"
+                              title={hasNotes ? 'Edit note' : 'Add note'}
+                            >
+                              <FiMessageSquare className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
                   <div className="p-8 text-center text-gray-500">
                     No students match your search criteria.
                   </div>
@@ -337,16 +568,27 @@ const Attendance = () => {
               <div className="p-4 bg-gray-50 border-t flex justify-end">
                 <button
                   onClick={handleSaveAttendance}
-                  disabled={isSaving || students.length === 0}
+                  disabled={saving || students.length === 0}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSaving ? 'Saving...' : 'Save Attendance'}
+                  {saving ? 'Saving...' : 'Save Attendance'}
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </Card>
+        )}
       </div>
+      
+      {/* Note Modal */}
+      {selectedStudent && (
+        <AttendanceNoteModal
+          isOpen={noteModalOpen}
+          onClose={() => setNoteModalOpen(false)}
+          student={selectedStudent}
+          currentNote={selectedStudent ? (attendanceMap[selectedStudent.id]?.notes || '') : ''}
+          onSaveNote={handleSaveNote}
+        />
+      )}
     </div>
   );
 };
